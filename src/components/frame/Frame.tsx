@@ -22,6 +22,7 @@ const NAV = [
   { href: "/app/schedule", label: "Schedule", icon: Calendar },
   { href: "/app/invoices", label: "Invoices", icon: Receipt },
   { href: "/app/reports", label: "Reports", icon: BarChart3 },
+  { href: "/app/team", label: "Team", icon: Users },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
