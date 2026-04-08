@@ -17,22 +17,21 @@ export default function SignUp() {
     e.preventDefault();
     setLoading(true);
     setErr("");
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error || !data.user) {
-      setLoading(false);
-      return setErr(error?.message || "Sign up failed");
-    }
-    // Create workspace
-    const slug = shopName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).slice(2, 6);
-    const { error: wsErr } = await supabase.from("workspaces").insert({
-      name: shopName,
-      slug,
-      owner_id: data.user.id,
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { shop_name: shopName } },
     });
     setLoading(false);
-    if (wsErr) return setErr(wsErr.message);
-    router.push("/app");
-    router.refresh();
+    if (error || !data.user) return setErr(error?.message || "Sign up failed");
+
+    // If session exists (email confirmation off), go to app. Otherwise tell user to check email.
+    if (data.session) {
+      router.push("/app");
+      router.refresh();
+    } else {
+      router.push("/sign-in?confirm=1");
+    }
   };
 
   return (
