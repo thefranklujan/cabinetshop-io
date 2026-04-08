@@ -5,8 +5,10 @@ import { useState } from "react";
 import {
   LayoutDashboard, Users, FolderKanban, Trello, Boxes, Scissors,
   ShoppingCart, Clock, Calendar, Receipt, BarChart3, Settings,
-  Search, Bell, Menu, X, Plus,
+  Search, Bell, Menu, X, Plus, LogOut,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 const NAV = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,9 +25,29 @@ const NAV = [
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
-export default function Frame({ children }: { children: React.ReactNode }) {
+export default function Frame({
+  children,
+  workspaceName = "Your Shop",
+  userEmail = "",
+}: {
+  children: React.ReactNode;
+  workspaceName?: string;
+  userEmail?: string;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const initials = (userEmail || "?")
+    .split("@")[0]
+    .slice(0, 2)
+    .toUpperCase();
+
+  const signOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/sign-in");
+    router.refresh();
+  };
 
   return (
     <div className="min-h-screen bg-ink text-paper flex">
@@ -69,12 +91,15 @@ export default function Frame({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-line">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/40 grid place-items-center text-amber-500 font-bold text-sm">
-              FL
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-semibold truncate">Frank Lujan</div>
-              <div className="text-[11px] text-neutral-500">Owner · Crafted Kitchens</div>
+              <div className="text-[13px] font-semibold truncate">{userEmail || "Owner"}</div>
+              <div className="text-[11px] text-neutral-500 truncate">{workspaceName}</div>
             </div>
+            <button onClick={signOut} title="Sign out" className="text-neutral-600 hover:text-amber-500">
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </aside>

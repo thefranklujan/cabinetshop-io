@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center px-6">
       <div className="max-w-2xl text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-900/40 bg-amber-500/10 text-amber-500 text-xs uppercase tracking-widest font-semibold mb-8">
-          ● ShopOS is live
+          ● CabinetShop.io is live
         </div>
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-none mb-6">
           The operating system for <span className="text-amber-500">custom cabinet shops.</span>
