@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         .from("shop_database")
         .update({
           status: "interested",
-          owner_name: ownerName || existing[0].owner_name,
+          owner_name: ownerName || null,
           phone: phone || null,
           city: city || null,
           state: state || null,
