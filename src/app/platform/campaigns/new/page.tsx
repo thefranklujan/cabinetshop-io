@@ -35,7 +35,7 @@ const TEMPLATES = [
   </div>
   <p style="color: #737373; font-size: 13px; text-align: center;">Free forever to start. No credit card required.</p>
   <hr style="border: none; border-top: 1px solid #262626; margin: 32px 0;" />
-  <p style="color: #525252; font-size: 11px; text-align: center;">CabinetShop.io by Crafted & Company, Austin TX<br/><a href="{unsubscribe_url}" style="color: #525252;">Unsubscribe</a></p>
+  <p style="color: #525252; font-size: 11px; text-align: center;">By CabinetShop.io 2026 Austin, TX<br/><a href="{unsubscribe_url}" style="color: #525252;">Unsubscribe</a></p>
 </div>`,
   },
   {
@@ -60,7 +60,7 @@ const TEMPLATES = [
   </div>
   <p style="color: #737373; font-size: 13px;">Frank Lujan<br/>Founder, CabinetShop.io</p>
   <hr style="border: none; border-top: 1px solid #262626; margin: 32px 0;" />
-  <p style="color: #525252; font-size: 11px; text-align: center;">CabinetShop.io by Crafted & Company, Austin TX<br/><a href="{unsubscribe_url}" style="color: #525252;">Unsubscribe</a></p>
+  <p style="color: #525252; font-size: 11px; text-align: center;">By CabinetShop.io 2026 Austin, TX<br/><a href="{unsubscribe_url}" style="color: #525252;">Unsubscribe</a></p>
 </div>`,
   },
 ];
