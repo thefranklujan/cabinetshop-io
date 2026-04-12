@@ -41,7 +41,14 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
             {c.sent_at && ` &middot; Sent ${c.sent_at.slice(0, 10)}`}
           </p>
         </div>
-        {c.status === "draft" && <CampaignActions campaignId={c.id} />}
+        <div className="flex gap-2">
+          {c.status === "sent" && (
+            <Link href={`/platform/campaigns/${c.id}/report`} className="btn">
+              View Report
+            </Link>
+          )}
+          {c.status === "draft" && <CampaignActions campaignId={c.id} />}
+        </div>
       </div>
 
       {/* Stats */}

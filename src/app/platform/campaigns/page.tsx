@@ -61,9 +61,14 @@ export default function CampaignsPage() {
             {campaigns.length} campaigns created
           </p>
         </div>
-        <Link href="/platform/campaigns/new" className="btn btn-primary">
-          <Plus className="w-4 h-4" /> New Campaign
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/platform/campaigns/reports" className="btn">
+            View Reports
+          </Link>
+          <Link href="/platform/campaigns/new" className="btn btn-primary">
+            <Plus className="w-4 h-4" /> New Campaign
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
