@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Send, Eye, MousePointerClick, Mail, Users } from "lucide-react";
 import CampaignActions from "./CampaignActions";
+import DOMPurify from "isomorphic-dompurify";
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +102,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           <div
             className="rounded-lg overflow-hidden"
             style={{ background: "#fff", maxHeight: "500px", overflowY: "auto" }}
-            dangerouslySetInnerHTML={{ __html: c.html }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.html) }}
           />
         </div>
 

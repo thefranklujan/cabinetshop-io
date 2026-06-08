@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
+import { signTrackingParams } from "@/lib/tracking-sig";
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY || "");
@@ -63,8 +64,10 @@ export async function POST(request: NextRequest) {
       const batch = validEmails.slice(i, i + batchSize);
       const promises = batch.map(async (email: string) => {
         try {
+          const encodedEmail = encodeURIComponent(email);
+          const unsubSig = signTrackingParams({ email: encodedEmail });
           const personalHtml = campaign.html
-            .replace(/{unsubscribe_url}/g, `${unsubUrl}?email=${encodeURIComponent(email)}`);
+            .replace(/{unsubscribe_url}/g, `${unsubUrl}?email=${encodedEmail}&sig=${unsubSig}`);
 
           await getResend().emails.send({
             from: "CabinetShop.io <hello@cabinetshop.io>",

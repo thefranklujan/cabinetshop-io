@@ -1,13 +1,24 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTrackingSignature } from "@/lib/tracking-sig";
 
 export async function GET(request: NextRequest) {
   const email = request.nextUrl.searchParams.get("email");
-  if (!email) {
+  const sig = request.nextUrl.searchParams.get("sig");
+
+  if (!email || !sig) {
     return new NextResponse(
-      "<html><body style='background:#0a0a0a;color:#fafaf7;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh'><div style='text-align:center'><h1>Missing email</h1></div></body></html>",
+      "<html><body style='background:#0a0a0a;color:#fafaf7;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh'><div style='text-align:center'><h1>Invalid request</h1></div></body></html>",
       { headers: { "Content-Type": "text/html" } }
+    );
+  }
+
+  const valid = verifyTrackingSignature({ email: encodeURIComponent(email) }, sig);
+  if (!valid) {
+    return new NextResponse(
+      "<html><body style='background:#0a0a0a;color:#fafaf7;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh'><div style='text-align:center'><h1>Invalid link</h1></div></body></html>",
+      { status: 403, headers: { "Content-Type": "text/html" } }
     );
   }
 

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, Send, Eye } from "lucide-react";
+import DOMPurify from "dompurify";
 import Link from "next/link";
 
 const AUDIENCES = [
@@ -174,7 +175,7 @@ export default function NewCampaignPage() {
               <div
                 className="rounded-lg overflow-hidden"
                 style={{ background: "#fff", padding: "0" }}
-                dangerouslySetInnerHTML={{ __html: html }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}
               />
             </div>
           )}
