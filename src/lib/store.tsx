@@ -5,6 +5,8 @@ import type {
   Client, Project, Material, CutListItem, PurchaseOrder, TimeEntry, ScheduleEvent, Invoice, Stage,
 } from "./types";
 
+export type WorkspaceRole = "owner" | "admin" | "member" | "viewer";
+
 type Store = {
   clients: Client[];
   projects: Project[];
@@ -19,6 +21,11 @@ type Store = {
 type Ctx = Store & {
   loading: boolean;
   workspaceId: string | null;
+  role: WorkspaceRole;
+  /** owner/admin/member — may create and edit operational records */
+  canWrite: boolean;
+  /** owner/admin — may delete records and manage team/settings */
+  canManage: boolean;
   setStore: React.Dispatch<React.SetStateAction<Store>>;
   addClient: (c: Omit<Client, "id" | "createdAt">) => Promise<void>;
   updateClient: (id: string, patch: Partial<Client>) => Promise<void>;
@@ -131,13 +138,27 @@ const toInvoice = (i: Partial<Invoice>) => ({
 export function StoreProvider({
   children,
   workspaceId,
+  role = "viewer",
 }: {
   children: React.ReactNode;
   workspaceId: string;
+  role?: WorkspaceRole;
 }) {
   const supabase = createClient();
   const [store, setStore] = useState<Store>(empty);
   const [loading, setLoading] = useState(true);
+
+  // Client-side role gates. These mirror the RLS policies (security_pass_1) so the UI
+  // fails fast with a clear message instead of bouncing off a silent RLS denial.
+  // RLS remains the authoritative enforcement layer.
+  const canWrite = role === "owner" || role === "admin" || role === "member";
+  const canManage = role === "owner" || role === "admin";
+  const denyWrite = () => {
+    if (typeof window !== "undefined") alert("Your access to this shop is view-only.");
+  };
+  const denyDelete = () => {
+    if (typeof window !== "undefined") alert("Only owners and admins can delete records.");
+  };
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -175,90 +196,114 @@ export function StoreProvider({
     ...store,
     loading,
     workspaceId,
+    role,
+    canWrite,
+    canManage,
     setStore,
     addClient: async (c) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("clients").insert({ ...toClient(c), ...ws });
       reload();
     },
     updateClient: async (id, patch) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("clients").update(toClient(patch)).eq("id", id);
       reload();
     },
     deleteClient: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("clients").delete().eq("id", id);
       reload();
     },
     addProject: async (p) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("projects").insert({ ...toProject(p), ...ws });
       reload();
     },
     updateProject: async (id, patch) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("projects").update(toProject(patch)).eq("id", id);
       reload();
     },
     deleteProject: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("projects").delete().eq("id", id);
       reload();
     },
     moveProjectStage: async (id, stage) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("projects").update({ stage }).eq("id", id);
       setStore((s) => ({ ...s, projects: s.projects.map((x) => (x.id === id ? { ...x, stage } : x)) }));
     },
     addMaterial: async (m) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("materials").insert({ ...toMaterial(m), ...ws });
       reload();
     },
     updateMaterial: async (id, patch) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("materials").update(toMaterial(patch)).eq("id", id);
       setStore((s) => ({ ...s, materials: s.materials.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
     },
     deleteMaterial: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("materials").delete().eq("id", id);
       reload();
     },
     addCutListItem: async (c) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("cut_list_items").insert({ ...toCut(c), ...ws });
       reload();
     },
     toggleCutListItem: async (id) => {
+      if (!canWrite) return denyWrite();
       const item = store.cutlist.find((x) => x.id === id);
       if (!item) return;
       await supabase.from("cut_list_items").update({ done: !item.done }).eq("id", id);
       setStore((s) => ({ ...s, cutlist: s.cutlist.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) }));
     },
     deleteCutListItem: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("cut_list_items").delete().eq("id", id);
       reload();
     },
     addPO: async (p) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("purchase_orders").insert({ ...toPO(p), ...ws });
       reload();
     },
     updatePO: async (id, patch) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("purchase_orders").update(toPO(patch)).eq("id", id);
       reload();
     },
     deletePO: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("purchase_orders").delete().eq("id", id);
       reload();
     },
     addScheduleEvent: async (e) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("schedule_events").insert({ ...toSchedule(e), ...ws });
       reload();
     },
     deleteScheduleEvent: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("schedule_events").delete().eq("id", id);
       reload();
     },
     addInvoice: async (i) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("invoices").insert({ ...toInvoice(i), ...ws });
       reload();
     },
     updateInvoice: async (id, patch) => {
+      if (!canWrite) return denyWrite();
       await supabase.from("invoices").update(toInvoice(patch)).eq("id", id);
       reload();
     },
     deleteInvoice: async (id) => {
+      if (!canManage) return denyDelete();
       await supabase.from("invoices").delete().eq("id", id);
       reload();
     },

@@ -5,7 +5,7 @@ import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 export default function MaterialsPage() {
-  const { materials, addMaterial, updateMaterial, deleteMaterial } = useStore();
+  const { materials, addMaterial, updateMaterial, deleteMaterial, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<string>("All");
   const [form, setForm] = useState({
@@ -21,7 +21,7 @@ export default function MaterialsPage() {
       <PageHeader
         title="Materials & Inventory"
         sub={`${materials.length} SKUs · ${fmtMoney(totalValue)} on hand`}
-        action={<button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Material</button>}
+        action={canWrite ? <button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Material</button> : null}
       />
 
       <div className="flex gap-2 mb-5 flex-wrap">
@@ -68,8 +68,9 @@ export default function MaterialsPage() {
                     <input
                       type="number"
                       value={m.inStock}
+                      disabled={!canWrite}
                       onChange={(e) => updateMaterial(m.id, { inStock: +e.target.value })}
-                      className="bg-transparent border border-neutral-800 rounded px-2 py-1 w-20 text-[13px]"
+                      className="bg-transparent border border-neutral-800 rounded px-2 py-1 w-20 text-[13px] disabled:opacity-60"
                     />
                     {low && <AlertTriangle className="inline w-3.5 h-3.5 text-red-400 ml-2" />}
                   </td>
@@ -77,9 +78,11 @@ export default function MaterialsPage() {
                   <td className="font-bold text-white">{fmtMoney(m.costPerUnit * m.inStock)}</td>
                   <td className="text-neutral-500">{m.supplier}</td>
                   <td>
-                    <button className="text-neutral-700 hover:text-red-400" onClick={() => { if (confirm("Delete?")) deleteMaterial(m.id); }}>
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canManage && (
+                      <button className="text-neutral-700 hover:text-red-400" onClick={() => { if (confirm("Delete?")) deleteMaterial(m.id); }}>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

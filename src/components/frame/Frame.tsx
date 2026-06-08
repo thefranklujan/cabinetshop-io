@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import type { WorkspaceRole } from "@/lib/store";
 
 const NAV = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -22,22 +23,30 @@ const NAV = [
   { href: "/app/schedule", label: "Schedule", icon: Calendar },
   { href: "/app/invoices", label: "Invoices", icon: Receipt },
   { href: "/app/reports", label: "Reports", icon: BarChart3 },
-  { href: "/app/team", label: "Team", icon: Users },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+  { href: "/app/team", label: "Team", icon: Users, manage: true },
+  { href: "/app/settings", label: "Settings", icon: Settings, manage: true },
 ];
 
 export default function Frame({
   children,
   workspaceName = "Your Shop",
   userEmail = "",
+  role = "viewer",
 }: {
   children: React.ReactNode;
   workspaceName?: string;
   userEmail?: string;
+  role?: WorkspaceRole;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Team + Settings are owner/admin only; viewers also lose the "New Job" shortcut.
+  // (RLS + the store role guards are the authoritative enforcement — this is the UI layer.)
+  const canManage = role === "owner" || role === "admin";
+  const canWrite = canManage || role === "member";
+  const nav = NAV.filter((item) => !item.manage || canManage);
   const initials = (userEmail || "?")
     .split("@")[0]
     .slice(0, 2)
@@ -68,7 +77,7 @@ export default function Frame({
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
@@ -96,7 +105,9 @@ export default function Frame({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold truncate">{userEmail || "Owner"}</div>
-              <div className="text-[11px] text-neutral-500 truncate">{workspaceName}</div>
+              <div className="text-[11px] text-neutral-500 truncate">
+                {workspaceName} · <span className="capitalize text-neutral-400">{role}</span>
+              </div>
             </div>
             <button onClick={signOut} title="Sign out" className="text-neutral-600 hover:text-amber-500">
               <LogOut className="w-4 h-4" />
@@ -124,9 +135,11 @@ export default function Frame({
             />
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/app/projects" className="btn">
-              <Plus className="w-4 h-4" /> New Job
-            </Link>
+            {canWrite && (
+              <Link href="/app/projects" className="btn">
+                <Plus className="w-4 h-4" /> New Job
+              </Link>
+            )}
             <button className="w-10 h-10 rounded-lg border border-line bg-[#0f0f0f] grid place-items-center text-neutral-400 hover:text-white hover:border-neutral-700 relative">
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-amber-500" />

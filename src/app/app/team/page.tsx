@@ -9,7 +9,7 @@ type Member = { user_id: string; role: string; joined_at: string; email?: string
 type Invite = { id: string; email: string; role: string; created_at: string };
 
 export default function TeamPage() {
-  const { workspaceId } = useStore();
+  const { workspaceId, canManage } = useStore();
   const supabase = createClient();
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -69,11 +69,19 @@ export default function TeamPage() {
         title="Team"
         sub={`${members.length} members · ${invites.length} pending invites`}
         action={
-          <button onClick={() => setOpen(true)} className="btn btn-primary">
-            <Plus className="w-4 h-4" /> Invite Member
-          </button>
+          canManage ? (
+            <button onClick={() => setOpen(true)} className="btn btn-primary">
+              <Plus className="w-4 h-4" /> Invite Member
+            </button>
+          ) : null
         }
       />
+
+      {!canManage && (
+        <div className="card p-4 mb-6 text-[13px] text-neutral-400 border-amber-500/20">
+          You have read-only access to the team. Only owners and admins can invite or remove members.
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="card p-6">
@@ -116,9 +124,11 @@ export default function TeamPage() {
                       Invited as {i.role} · {i.created_at?.slice(0, 10)}
                     </div>
                   </div>
-                  <button onClick={() => revoke(i.id)} className="text-neutral-700 hover:text-red-400">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canManage && (
+                    <button onClick={() => revoke(i.id)} className="text-neutral-700 hover:text-red-400">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

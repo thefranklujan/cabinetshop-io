@@ -13,7 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const { pos, projects, addPO, updatePO, deletePO } = useStore();
+  const { pos, projects, addPO, updatePO, deletePO, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     poNumber: "", supplier: "", projectId: "", status: "Draft" as any,
@@ -25,7 +25,7 @@ export default function OrdersPage() {
       <PageHeader
         title="Purchase Orders"
         sub={`${pos.length} POs · ${fmtMoney(pos.reduce((s, p) => s + p.total, 0))} total committed`}
-        action={<button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New PO</button>}
+        action={canWrite ? <button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New PO</button> : null}
       />
 
       <div className="card overflow-x-auto">
@@ -44,8 +44,9 @@ export default function OrdersPage() {
                   <td>
                     <select
                       value={p.status}
+                      disabled={!canWrite}
                       onChange={(e) => updatePO(p.id, { status: e.target.value as any })}
-                      className={`bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] font-semibold ${STATUS_COLORS[p.status]}`}
+                      className={`bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] font-semibold disabled:opacity-60 ${STATUS_COLORS[p.status]}`}
                     >
                       <option>Draft</option><option>Sent</option><option>Confirmed</option><option>Received</option><option>Closed</option>
                     </select>
@@ -54,9 +55,11 @@ export default function OrdersPage() {
                   <td>{p.expectedDate}</td>
                   <td className="text-neutral-500">{p.createdAt}</td>
                   <td>
-                    <button className="text-neutral-700 hover:text-red-400" onClick={() => { if (confirm("Delete?")) deletePO(p.id); }}>
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canManage && (
+                      <button className="text-neutral-700 hover:text-red-400" onClick={() => { if (confirm("Delete?")) deletePO(p.id); }}>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

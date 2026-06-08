@@ -5,7 +5,7 @@ import { Plus, Trash2, Mail, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
 
 export default function ClientsPage() {
-  const { clients, projects, addClient, deleteClient } = useStore();
+  const { clients, projects, addClient, deleteClient, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: "", type: "Homeowner" as any, email: "", phone: "", address: "", notes: "",
@@ -16,7 +16,7 @@ export default function ClientsPage() {
       <PageHeader
         title="Clients"
         sub={`${clients.length} contacts in CRM`}
-        action={<button onClick={() => setOpen(true)} className="btn btn-primary"><Plus className="w-4 h-4" /> New Client</button>}
+        action={canWrite ? <button onClick={() => setOpen(true)} className="btn btn-primary"><Plus className="w-4 h-4" /> New Client</button> : null}
       />
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -30,12 +30,14 @@ export default function ClientsPage() {
                   <div className="text-[16px] font-bold text-white">{c.name}</div>
                   <span className="chip mt-1">{c.type}</span>
                 </div>
-                <button
-                  onClick={() => { if (confirm(`Delete ${c.name}?`)) deleteClient(c.id); }}
-                  className="text-neutral-700 hover:text-red-400"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {canManage && (
+                  <button
+                    onClick={() => { if (confirm(`Delete ${c.name}?`)) deleteClient(c.id); }}
+                    className="text-neutral-700 hover:text-red-400"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               <div className="space-y-1.5 text-[12px] text-neutral-400 mb-4">
                 <div className="flex items-center gap-2"><Mail className="w-3 h-3 text-neutral-600" /> {c.email}</div>

@@ -6,7 +6,7 @@ import { Plus, Trash2, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function ProjectsPage() {
-  const { projects, clients, addProject, updateProject, deleteProject } = useStore();
+  const { projects, clients, addProject, updateProject, deleteProject, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [stageFilter, setStageFilter] = useState<Stage | "All">("All");
@@ -48,9 +48,11 @@ export default function ProjectsPage() {
         title="Projects"
         sub={`${projects.length} total · ${projects.filter((p) => p.stage !== "Complete").length} active`}
         action={
-          <button onClick={() => setOpen(true)} className="btn btn-primary">
-            <Plus className="w-4 h-4" /> New Project
-          </button>
+          canWrite ? (
+            <button onClick={() => setOpen(true)} className="btn btn-primary">
+              <Plus className="w-4 h-4" /> New Project
+            </button>
+          ) : null
         }
       />
 
@@ -106,8 +108,9 @@ export default function ProjectsPage() {
                   <td>
                     <select
                       value={p.stage}
+                      disabled={!canWrite}
                       onChange={(e) => updateProject(p.id, { stage: e.target.value as Stage })}
-                      className="bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] text-amber-500 font-semibold"
+                      className="bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] text-amber-500 font-semibold disabled:opacity-60"
                     >
                       {STAGES.map((s) => (
                         <option key={s} value={s}>
@@ -123,14 +126,16 @@ export default function ProjectsPage() {
                   <td className="text-emerald-400">{fmtMoney(p.paid)}</td>
                   <td className="text-neutral-500">{p.dueDate}</td>
                   <td>
-                    <button
-                      onClick={() => {
-                        if (confirm(`Delete ${p.name}?`)) deleteProject(p.id);
-                      }}
-                      className="text-neutral-600 hover:text-red-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canManage && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete ${p.name}?`)) deleteProject(p.id);
+                        }}
+                        className="text-neutral-600 hover:text-red-400"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

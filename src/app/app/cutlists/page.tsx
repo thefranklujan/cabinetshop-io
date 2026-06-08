@@ -5,7 +5,7 @@ import { Plus, Trash2, Check } from "lucide-react";
 import { useState } from "react";
 
 export default function CutListsPage() {
-  const { cutlist, projects, addCutListItem, toggleCutListItem, deleteCutListItem } = useStore();
+  const { cutlist, projects, addCutListItem, toggleCutListItem, deleteCutListItem, canWrite, canManage } = useStore();
   const [projectId, setProjectId] = useState(projects[0]?.id || "");
   const [form, setForm] = useState({ part: "", material: "", qty: 1, length: 0, width: 0, thickness: 0.75 });
 
@@ -36,6 +36,7 @@ export default function CutListsPage() {
         )}
       </div>
 
+      {canWrite && (
       <div className="card p-5 mb-5">
         <div className="label mb-3">Add Part</div>
         <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
@@ -57,6 +58,7 @@ export default function CutListsPage() {
           </button>
         </div>
       </div>
+      )}
 
       <div className="card overflow-x-auto">
         <table>
@@ -69,7 +71,8 @@ export default function CutListsPage() {
                 <td>
                   <button
                     onClick={() => toggleCutListItem(i.id)}
-                    className={`w-6 h-6 rounded border-2 grid place-items-center ${i.done ? "bg-amber-500 border-amber-500" : "border-neutral-700"}`}
+                    disabled={!canWrite}
+                    className={`w-6 h-6 rounded border-2 grid place-items-center disabled:opacity-60 ${i.done ? "bg-amber-500 border-amber-500" : "border-neutral-700"}`}
                   >
                     {i.done && <Check className="w-3.5 h-3.5 text-ink" />}
                   </button>
@@ -81,9 +84,11 @@ export default function CutListsPage() {
                 <td>{i.width}"</td>
                 <td>{i.thickness}"</td>
                 <td>
-                  <button className="text-neutral-700 hover:text-red-400" onClick={() => deleteCutListItem(i.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canManage && (
+                    <button className="text-neutral-700 hover:text-red-400" onClick={() => deleteCutListItem(i.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

@@ -13,7 +13,7 @@ const PRIORITY_COLOR: Record<string, string> = {
 };
 
 export default function BoardPage() {
-  const { projects, clients, moveProjectStage } = useStore();
+  const { projects, clients, moveProjectStage, canWrite } = useStore();
   const [dragId, setDragId] = useState<string | null>(null);
 
   const moveOne = (id: string, dir: 1 | -1) => {
@@ -62,9 +62,9 @@ export default function BoardPage() {
                   return (
                     <div
                       key={p.id}
-                      draggable
-                      onDragStart={() => setDragId(p.id)}
-                      className="bg-[#161616] border border-neutral-800 rounded-lg p-3 cursor-grab hover:border-amber-500/40 group"
+                      draggable={canWrite}
+                      onDragStart={() => canWrite && setDragId(p.id)}
+                      className={`bg-[#161616] border border-neutral-800 rounded-lg p-3 hover:border-amber-500/40 group ${canWrite ? "cursor-grab" : ""}`}
                     >
                       <div className="flex items-start gap-2 mb-2">
                         <GripVertical className="w-3 h-3 text-neutral-700 mt-0.5 shrink-0" />
@@ -79,20 +79,22 @@ export default function BoardPage() {
                         <span className="text-amber-500 font-bold">{fmtMoney(p.contractTotal)}</span>
                       </div>
                       <div className="text-[10px] text-neutral-600 mt-1">Due {p.dueDate}</div>
-                      <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 mt-2">
-                        <button
-                          onClick={() => moveOne(p.id, -1)}
-                          className="flex-1 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center gap-1"
-                        >
-                          <ChevronLeft className="w-3 h-3" /> Back
-                        </button>
-                        <button
-                          onClick={() => moveOne(p.id, 1)}
-                          className="flex-1 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] flex items-center justify-center gap-1"
-                        >
-                          Forward <ChevronRight className="w-3 h-3" />
-                        </button>
-                      </div>
+                      {canWrite && (
+                        <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 mt-2">
+                          <button
+                            onClick={() => moveOne(p.id, -1)}
+                            className="flex-1 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center gap-1"
+                          >
+                            <ChevronLeft className="w-3 h-3" /> Back
+                          </button>
+                          <button
+                            onClick={() => moveOne(p.id, 1)}
+                            className="flex-1 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] flex items-center justify-center gap-1"
+                          >
+                            Forward <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

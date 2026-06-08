@@ -13,7 +13,7 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 export default function SchedulePage() {
-  const { schedule, projects, addScheduleEvent, deleteScheduleEvent } = useStore();
+  const { schedule, projects, addScheduleEvent, deleteScheduleEvent, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ projectId: "", type: "Install" as any, date: "", notes: "" });
 
@@ -36,7 +36,7 @@ export default function SchedulePage() {
       <PageHeader
         title="Schedule"
         sub="Measures, deliveries, installs, site visits, and punch lists."
-        action={<button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Event</button>}
+        action={canWrite ? <button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Event</button> : null}
       />
 
       <div className="card p-4 mb-5">
@@ -86,7 +86,7 @@ export default function SchedulePage() {
                   <td><span className={`chip ${TYPE_COLOR[e.type]}`}>{e.type}</span></td>
                   <td>{proj?.name || "—"}</td>
                   <td className="text-neutral-500">{e.notes || "—"}</td>
-                  <td><button className="text-neutral-700 hover:text-red-400" onClick={() => deleteScheduleEvent(e.id)}><Trash2 className="w-4 h-4" /></button></td>
+                  <td>{canManage && <button className="text-neutral-700 hover:text-red-400" onClick={() => deleteScheduleEvent(e.id)}><Trash2 className="w-4 h-4" /></button>}</td>
                 </tr>
               );
             })}

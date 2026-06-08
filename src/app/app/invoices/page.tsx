@@ -12,7 +12,7 @@ const STATUS: Record<string, string> = {
 };
 
 export default function InvoicesPage() {
-  const { invoices, projects, addInvoice, updateInvoice, deleteInvoice } = useStore();
+  const { invoices, projects, addInvoice, updateInvoice, deleteInvoice, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     invoiceNumber: "", projectId: "", amount: 0, status: "Draft" as any, dueDate: "", issuedAt: "",
@@ -30,7 +30,7 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         sub={`${invoices.length} invoices on file`}
-        action={<button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Invoice</button>}
+        action={canWrite ? <button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="w-4 h-4" /> New Invoice</button> : null}
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -54,15 +54,16 @@ export default function InvoicesPage() {
                   <td>
                     <select
                       value={i.status}
+                      disabled={!canWrite}
                       onChange={(e) => updateInvoice(i.id, { status: e.target.value as any })}
-                      className={`bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] font-semibold ${STATUS[i.status]}`}
+                      className={`bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] font-semibold disabled:opacity-60 ${STATUS[i.status]}`}
                     >
                       <option>Draft</option><option>Sent</option><option>Paid</option><option>Overdue</option>
                     </select>
                   </td>
                   <td className="text-neutral-500">{i.issuedAt}</td>
                   <td className="text-neutral-500">{i.dueDate}</td>
-                  <td><button className="text-neutral-700 hover:text-red-400" onClick={() => deleteInvoice(i.id)}><Trash2 className="w-4 h-4" /></button></td>
+                  <td>{canManage && <button className="text-neutral-700 hover:text-red-400" onClick={() => deleteInvoice(i.id)}><Trash2 className="w-4 h-4" /></button>}</td>
                 </tr>
               );
             })}
