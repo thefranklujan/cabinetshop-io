@@ -63,6 +63,20 @@ export default function TeamPage() {
     reload();
   };
 
+  // Owner/admin only. RLS (wm_update) protects the owner row and forbids minting a new
+  // owner; this just surfaces the allowed admin/member/viewer transitions.
+  const updateRole = async (userId: string, newRole: string) => {
+    if (!workspaceId) return;
+    setErr("");
+    const { error } = await supabase
+      .from("workspace_members")
+      .update({ role: newRole })
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", userId);
+    if (error) return setErr(error.message);
+    reload();
+  };
+
   return (
     <>
       <PageHeader
@@ -100,9 +114,21 @@ export default function TeamPage() {
                     <div className="text-[11px] text-neutral-500">Joined {m.joined_at?.slice(0, 10)}</div>
                   </div>
                 </div>
-                <span className="chip chip-accent flex items-center gap-1">
-                  <Shield className="w-3 h-3" /> {m.role}
-                </span>
+                {canManage && m.role !== "owner" ? (
+                  <select
+                    value={m.role}
+                    onChange={(e) => updateRole(m.user_id, e.target.value)}
+                    className="bg-[#0f0f0f] border border-line rounded-lg px-2.5 py-1.5 text-[12px] text-white outline-none focus:border-amber-500"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="member">Member</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                ) : (
+                  <span className="chip chip-accent flex items-center gap-1">
+                    <Shield className="w-3 h-3" /> {m.role}
+                  </span>
+                )}
               </div>
             ))}
           </div>

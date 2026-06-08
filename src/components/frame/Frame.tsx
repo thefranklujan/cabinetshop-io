@@ -32,11 +32,15 @@ export default function Frame({
   workspaceName = "Your Shop",
   userEmail = "",
   role = "viewer",
+  workspaces = [],
+  activeWorkspaceId = "",
 }: {
   children: React.ReactNode;
   workspaceName?: string;
   userEmail?: string;
   role?: WorkspaceRole;
+  workspaces?: { id: string; name: string }[];
+  activeWorkspaceId?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -47,6 +51,14 @@ export default function Frame({
   const canManage = role === "owner" || role === "admin";
   const canWrite = canManage || role === "member";
   const nav = NAV.filter((item) => !item.manage || canManage);
+
+  // Workspace switcher (only meaningful when the user belongs to >1 shop). Persists the
+  // choice in a year-long cookie read by the app layout, then refreshes the server tree.
+  const switchWorkspace = (id: string) => {
+    if (!id || id === activeWorkspaceId) return;
+    document.cookie = `cs_workspace=${id}; path=/; max-age=31536000; samesite=lax`;
+    router.refresh();
+  };
   const initials = (userEmail || "?")
     .split("@")[0]
     .slice(0, 2)
@@ -75,6 +87,21 @@ export default function Frame({
             CabinetShop<span className="text-amber-500">.io</span>
           </Link>
         </div>
+
+        {workspaces.length > 1 && (
+          <div className="px-3 pt-3">
+            <div className="label px-1 mb-1">Shop</div>
+            <select
+              value={activeWorkspaceId}
+              onChange={(e) => switchWorkspace(e.target.value)}
+              className="w-full bg-[#0f0f0f] border border-line rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-amber-500"
+            >
+              {workspaces.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {nav.map((item) => {

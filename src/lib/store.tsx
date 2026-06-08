@@ -162,15 +162,18 @@ export function StoreProvider({
 
   const reload = useCallback(async () => {
     setLoading(true);
+    // Scope every read to the active workspace. RLS already limits rows to the caller's
+    // workspaces, but a user in multiple shops would otherwise see merged data — and the
+    // workspace switcher depends on this filter to show the selected shop only.
     const [c, p, m, cl, po, te, sc, iv] = await Promise.all([
-      supabase.from("clients").select("*").order("created_at", { ascending: false }),
-      supabase.from("projects").select("*").order("created_at", { ascending: false }),
-      supabase.from("materials").select("*").order("name"),
-      supabase.from("cut_list_items").select("*").order("created_at", { ascending: false }),
-      supabase.from("purchase_orders").select("*").order("created_at", { ascending: false }),
-      supabase.from("time_entries").select("*").order("started_at", { ascending: false }),
-      supabase.from("schedule_events").select("*").order("date"),
-      supabase.from("invoices").select("*").order("created_at", { ascending: false }),
+      supabase.from("clients").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+      supabase.from("projects").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+      supabase.from("materials").select("*").eq("workspace_id", workspaceId).order("name"),
+      supabase.from("cut_list_items").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+      supabase.from("purchase_orders").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+      supabase.from("time_entries").select("*").eq("workspace_id", workspaceId).order("started_at", { ascending: false }),
+      supabase.from("schedule_events").select("*").eq("workspace_id", workspaceId).order("date"),
+      supabase.from("invoices").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
     ]);
     setStore({
       clients: (c.data || []).map(fromClient),
@@ -183,7 +186,7 @@ export function StoreProvider({
       invoices: (iv.data || []).map(fromInvoice),
     });
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, workspaceId]);
 
   useEffect(() => {
     reload();
