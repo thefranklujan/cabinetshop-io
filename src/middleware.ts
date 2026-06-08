@@ -31,10 +31,13 @@ export async function middleware(request: NextRequest) {
   const isPublic = path === "/early-access" || path.startsWith("/api/early-access") || path.startsWith("/api/track") || path.startsWith("/api/unsubscribe");
   if (isPublic) return response;
 
-  const isApp = path.startsWith("/app");
+  // Both the shop app and the platform console require an authenticated user.
+  // The platform console's admin authorization stays with the layout's
+  // is_platform_admin RPC (the authoritative check); this is defense in depth.
+  const isProtected = path.startsWith("/app") || path.startsWith("/platform");
   const isAuth = path === "/sign-in" || path === "/sign-up";
 
-  if (isApp && !user) {
+  if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     return NextResponse.redirect(url);
