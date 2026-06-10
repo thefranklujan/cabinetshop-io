@@ -182,11 +182,6 @@ export default function Frame({
         {/* Footer */}
         <footer className="border-t border-line px-8 py-4 text-[12px] text-neutral-600 flex justify-between flex-wrap gap-2">
           <div>© 2026 Crafted &amp; Company · CabinetShop.io v1.0</div>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-neutral-400">Help</a>
-            <a href="#" className="hover:text-neutral-400">Changelog</a>
-            <a href="#" className="hover:text-neutral-400">Status</a>
-          </div>
         </footer>
       </div>
     </div>

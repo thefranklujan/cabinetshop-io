@@ -44,6 +44,14 @@ export default function InvoicesPage() {
         <table>
           <thead><tr><th>Invoice #</th><th>Project</th><th>Amount</th><th>Status</th><th>Issued</th><th>Due</th><th></th></tr></thead>
           <tbody>
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-12 text-neutral-500 text-[13px]">
+                  No invoices yet. Bill deposits and progress payments per job
+                  {canWrite ? " with New Invoice above." : "."}
+                </td>
+              </tr>
+            )}
             {invoices.map((i) => {
               const proj = projects.find((p) => p.id === i.projectId);
               return (

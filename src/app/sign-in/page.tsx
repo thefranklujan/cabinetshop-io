@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -11,6 +11,12 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  // Sign-up redirects here with ?confirm=1 when email confirmation is required.
+  // Read it from window (not useSearchParams) to avoid a Suspense boundary at prerender.
+  const [needsConfirm, setNeedsConfirm] = useState(false);
+  useEffect(() => {
+    setNeedsConfirm(new URLSearchParams(window.location.search).get("confirm") === "1");
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +41,11 @@ export default function SignIn() {
         <div className="card p-8">
           <h1 className="text-2xl font-extrabold mb-1">Sign in</h1>
           <p className="text-neutral-500 text-[13px] mb-6">Welcome back to your shop.</p>
+          {needsConfirm && (
+            <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-[13px] text-amber-400">
+              Almost there. Check your email for a confirmation link, then sign in below.
+            </div>
+          )}
           <form onSubmit={submit} className="space-y-4">
             <div>
               <div className="label">Email</div>

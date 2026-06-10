@@ -29,11 +29,14 @@ export default function TeamPage() {
     // Fetch emails by joining auth.users via an RPC would be ideal; for now just show user_id
     setMembers((m || []) as any);
 
-    const { data: i } = await supabase
+    const { data: i, error: iErr } = await supabase
       .from("workspace_invites")
       .select("id, email, role, created_at")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false });
+    // Surface a failed invite read — a permission bug here once rendered as a
+    // permanently empty "No pending invites" list.
+    if (iErr) setErr(`Could not load pending invites: ${iErr.message}`);
     setInvites((i || []) as any);
   };
 
@@ -95,6 +98,10 @@ export default function TeamPage() {
         <div className="card p-4 mb-6 text-[13px] text-neutral-400 border-amber-500/20">
           You have read-only access to the team. Only owners and admins can invite or remove members.
         </div>
+      )}
+
+      {err && !open && (
+        <div className="card p-4 mb-6 text-[13px] text-red-400 border-red-500/20">{err}</div>
       )}
 
       <div className="grid lg:grid-cols-2 gap-6">

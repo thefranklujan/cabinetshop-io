@@ -19,6 +19,13 @@ export default function ClientsPage() {
         action={canWrite ? <button onClick={() => setOpen(true)} className="btn btn-primary"><Plus className="w-4 h-4" /> New Client</button> : null}
       />
 
+      {clients.length === 0 && (
+        <div className="card p-12 text-center text-neutral-500 text-[13px]">
+          <Mail className="w-6 h-6 mx-auto mb-2 text-neutral-700" />
+          No clients yet. Your homeowners, designers, GCs, and builders live here
+          {canWrite ? " — start with New Client above." : "."}
+        </div>
+      )}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {clients.map((c) => {
           const cProjects = projects.filter((p) => p.clientId === c.id);

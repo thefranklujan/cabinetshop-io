@@ -23,6 +23,10 @@ export default function Dashboard() {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
+  // schedule dates are plain YYYY-MM-DD; new Date(s) would read them as UTC midnight
+  // and render a day early in any US timezone.
+  const localDay = (s: string) => new Date(`${s.slice(0, 10)}T00:00:00`);
+
   const kpi = [
     { label: "Active Jobs", value: wipProjects.length, icon: Hammer, accent: true },
     { label: "WIP Value", value: fmtMoney(wipValue), icon: TrendingUp },
@@ -105,9 +109,9 @@ export default function Dashboard() {
                 <div key={e.id} className="flex gap-3 items-start pb-3 border-b border-neutral-900 last:border-0 last:pb-0">
                   <div className="w-12 text-center">
                     <div className="text-[10px] uppercase text-amber-500 font-bold">
-                      {new Date(e.date).toLocaleString("en-US", { month: "short" })}
+                      {localDay(e.date).toLocaleString("en-US", { month: "short" })}
                     </div>
-                    <div className="text-xl font-extrabold">{new Date(e.date).getDate()}</div>
+                    <div className="text-xl font-extrabold">{localDay(e.date).getDate()}</div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13px] font-semibold truncate">{proj?.name || "—"}</div>

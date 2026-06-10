@@ -159,6 +159,13 @@ export function StoreProvider({
   const denyDelete = () => {
     if (typeof window !== "undefined") alert("Only owners and admins can delete records.");
   };
+  // Surface failed mutations instead of swallowing them. Without this, an RLS denial
+  // or network error looks like a successful save (the UI just reloads unchanged).
+  const failed = (action: string, error: { message: string } | null) => {
+    if (!error) return false;
+    if (typeof window !== "undefined") alert(`${action} failed: ${error.message}`);
+    return true;
+  };
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -205,109 +212,130 @@ export function StoreProvider({
     setStore,
     addClient: async (c) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("clients").insert({ ...toClient(c), ...ws });
+      const { error } = await supabase.from("clients").insert({ ...toClient(c), ...ws });
+      if (failed("Adding the client", error)) return;
       reload();
     },
     updateClient: async (id, patch) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("clients").update(toClient(patch)).eq("id", id);
+      const { error } = await supabase.from("clients").update(toClient(patch)).eq("id", id);
+      if (failed("Saving the client", error)) return;
       reload();
     },
     deleteClient: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("clients").delete().eq("id", id);
+      const { error } = await supabase.from("clients").delete().eq("id", id);
+      if (failed("Deleting the client", error)) return;
       reload();
     },
     addProject: async (p) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("projects").insert({ ...toProject(p), ...ws });
+      const { error } = await supabase.from("projects").insert({ ...toProject(p), ...ws });
+      if (failed("Adding the project", error)) return;
       reload();
     },
     updateProject: async (id, patch) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("projects").update(toProject(patch)).eq("id", id);
+      const { error } = await supabase.from("projects").update(toProject(patch)).eq("id", id);
+      if (failed("Saving the project", error)) return;
       reload();
     },
     deleteProject: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("projects").delete().eq("id", id);
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+      if (failed("Deleting the project", error)) return;
       reload();
     },
     moveProjectStage: async (id, stage) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("projects").update({ stage }).eq("id", id);
+      const { error } = await supabase.from("projects").update({ stage }).eq("id", id);
+      if (failed("Moving the job", error)) return;
       setStore((s) => ({ ...s, projects: s.projects.map((x) => (x.id === id ? { ...x, stage } : x)) }));
     },
     addMaterial: async (m) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("materials").insert({ ...toMaterial(m), ...ws });
+      const { error } = await supabase.from("materials").insert({ ...toMaterial(m), ...ws });
+      if (failed("Adding the material", error)) return;
       reload();
     },
     updateMaterial: async (id, patch) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("materials").update(toMaterial(patch)).eq("id", id);
+      const { error } = await supabase.from("materials").update(toMaterial(patch)).eq("id", id);
+      if (failed("Saving the material", error)) return;
       setStore((s) => ({ ...s, materials: s.materials.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
     },
     deleteMaterial: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("materials").delete().eq("id", id);
+      const { error } = await supabase.from("materials").delete().eq("id", id);
+      if (failed("Deleting the material", error)) return;
       reload();
     },
     addCutListItem: async (c) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("cut_list_items").insert({ ...toCut(c), ...ws });
+      const { error } = await supabase.from("cut_list_items").insert({ ...toCut(c), ...ws });
+      if (failed("Adding the part", error)) return;
       reload();
     },
     toggleCutListItem: async (id) => {
       if (!canWrite) return denyWrite();
       const item = store.cutlist.find((x) => x.id === id);
       if (!item) return;
-      await supabase.from("cut_list_items").update({ done: !item.done }).eq("id", id);
+      const { error } = await supabase.from("cut_list_items").update({ done: !item.done }).eq("id", id);
+      if (failed("Updating the part", error)) return;
       setStore((s) => ({ ...s, cutlist: s.cutlist.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) }));
     },
     deleteCutListItem: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("cut_list_items").delete().eq("id", id);
+      const { error } = await supabase.from("cut_list_items").delete().eq("id", id);
+      if (failed("Deleting the part", error)) return;
       reload();
     },
     addPO: async (p) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("purchase_orders").insert({ ...toPO(p), ...ws });
+      const { error } = await supabase.from("purchase_orders").insert({ ...toPO(p), ...ws });
+      if (failed("Adding the purchase order", error)) return;
       reload();
     },
     updatePO: async (id, patch) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("purchase_orders").update(toPO(patch)).eq("id", id);
+      const { error } = await supabase.from("purchase_orders").update(toPO(patch)).eq("id", id);
+      if (failed("Saving the purchase order", error)) return;
       reload();
     },
     deletePO: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("purchase_orders").delete().eq("id", id);
+      const { error } = await supabase.from("purchase_orders").delete().eq("id", id);
+      if (failed("Deleting the purchase order", error)) return;
       reload();
     },
     addScheduleEvent: async (e) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("schedule_events").insert({ ...toSchedule(e), ...ws });
+      const { error } = await supabase.from("schedule_events").insert({ ...toSchedule(e), ...ws });
+      if (failed("Adding the event", error)) return;
       reload();
     },
     deleteScheduleEvent: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("schedule_events").delete().eq("id", id);
+      const { error } = await supabase.from("schedule_events").delete().eq("id", id);
+      if (failed("Deleting the event", error)) return;
       reload();
     },
     addInvoice: async (i) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("invoices").insert({ ...toInvoice(i), ...ws });
+      const { error } = await supabase.from("invoices").insert({ ...toInvoice(i), ...ws });
+      if (failed("Adding the invoice", error)) return;
       reload();
     },
     updateInvoice: async (id, patch) => {
       if (!canWrite) return denyWrite();
-      await supabase.from("invoices").update(toInvoice(patch)).eq("id", id);
+      const { error } = await supabase.from("invoices").update(toInvoice(patch)).eq("id", id);
+      if (failed("Saving the invoice", error)) return;
       reload();
     },
     deleteInvoice: async (id) => {
       if (!canManage) return denyDelete();
-      await supabase.from("invoices").delete().eq("id", id);
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
+      if (failed("Deleting the invoice", error)) return;
       reload();
     },
     resetData: async () => {

@@ -1,8 +1,31 @@
 "use client";
 import { PageHeader } from "@/components/frame/Frame";
 import { useStore, fmtMoney } from "@/lib/store";
-import { Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Package } from "lucide-react";
 import { useState } from "react";
+
+// Draft locally and commit once on blur/Enter. Committing on every keystroke raced
+// the store reload and re-rendered the input mid-entry, corrupting multi-digit counts.
+function StockCell({ value, disabled, onCommit }: { value: number; disabled: boolean; onCommit: (n: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft === null) return;
+    const n = Number(draft);
+    if (!Number.isNaN(n) && n !== value) onCommit(n);
+    setDraft(null);
+  };
+  return (
+    <input
+      type="number"
+      value={draft ?? value}
+      disabled={disabled}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className="bg-transparent border border-neutral-800 rounded px-2 py-1 w-20 text-[13px] disabled:opacity-60"
+    />
+  );
+}
 
 export default function MaterialsPage() {
   const { materials, addMaterial, updateMaterial, deleteMaterial, canWrite, canManage } = useStore();
@@ -55,6 +78,15 @@ export default function MaterialsPage() {
             </tr>
           </thead>
           <tbody>
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={10} className="text-center py-12 text-neutral-500 text-[13px]">
+                  <Package className="w-6 h-6 mx-auto mb-2 text-neutral-700" />
+                  No materials yet. Add the sheet goods, hardwood, and hardware you keep on hand
+                  {canWrite ? " with New Material above." : "."}
+                </td>
+              </tr>
+            )}
             {filtered.map((m) => {
               const low = m.inStock <= m.reorderAt;
               return (
@@ -65,13 +97,7 @@ export default function MaterialsPage() {
                   <td>{m.unit}</td>
                   <td>{fmtMoney(m.costPerUnit)}</td>
                   <td>
-                    <input
-                      type="number"
-                      value={m.inStock}
-                      disabled={!canWrite}
-                      onChange={(e) => updateMaterial(m.id, { inStock: +e.target.value })}
-                      className="bg-transparent border border-neutral-800 rounded px-2 py-1 w-20 text-[13px] disabled:opacity-60"
-                    />
+                    <StockCell value={m.inStock} disabled={!canWrite} onCommit={(n) => updateMaterial(m.id, { inStock: n })} />
                     {low && <AlertTriangle className="inline w-3.5 h-3.5 text-red-400 ml-2" />}
                   </td>
                   <td>{m.reorderAt}</td>

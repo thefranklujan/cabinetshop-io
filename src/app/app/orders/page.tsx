@@ -34,6 +34,14 @@ export default function OrdersPage() {
             <tr><th>PO #</th><th>Supplier</th><th>Job</th><th>Status</th><th>Total</th><th>Expected</th><th>Created</th><th></th></tr>
           </thead>
           <tbody>
+            {pos.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center py-12 text-neutral-500 text-[13px]">
+                  No purchase orders yet. Track material orders per supplier and job
+                  {canWrite ? " with New PO above." : "."}
+                </td>
+              </tr>
+            )}
             {pos.map((p) => {
               const proj = projects.find((x) => x.id === p.projectId);
               return (
