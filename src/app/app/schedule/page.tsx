@@ -78,6 +78,13 @@ export default function SchedulePage() {
         <table>
           <thead><tr><th>Date</th><th>Type</th><th>Project</th><th>Notes</th><th></th></tr></thead>
           <tbody>
+            {schedule.length === 0 && (
+              <tr>
+                <td colSpan={5} className="text-center py-12 text-neutral-500 text-[13px]">
+                  Nothing scheduled yet. Measures, deliveries, installs, and site visits land here.
+                </td>
+              </tr>
+            )}
             {[...schedule].sort((a, b) => a.date.localeCompare(b.date)).map((e) => {
               const proj = projects.find((p) => p.id === e.projectId);
               return (
@@ -95,14 +102,14 @@ export default function SchedulePage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="card max-w-lg w-full p-7">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+          <div className="card max-w-lg w-full p-7" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-5">New Schedule Event</h2>
             <div className="space-y-3">
               <div><div className="label">Project</div>
                 <select className="input" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })}>
                   <option value="">— Choose —</option>
-                  {projects.map((p) => <option key={p.id} value={p.id}>{p.jobNumber} · {p.name}</option>)}
+                  {projects.map((p) => <option key={p.id} value={p.id}>{p.jobNumber ? `${p.jobNumber} · ` : ""}{p.name}</option>)}
                 </select>
               </div>
               <div><div className="label">Type</div>
@@ -115,7 +122,7 @@ export default function SchedulePage() {
             </div>
             <div className="flex gap-2 justify-end mt-6">
               <button className="btn" onClick={() => setOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.date) { addScheduleEvent(form); setOpen(false); setForm({ projectId: "", type: "Install", date: "", notes: "" }); } }}>Create</button>
+              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.date) { addScheduleEvent(form); setOpen(false); setForm({ projectId: "", type: "Install", date: "", notes: "" }); } }}>Create Event</button>
             </div>
           </div>
         </div>

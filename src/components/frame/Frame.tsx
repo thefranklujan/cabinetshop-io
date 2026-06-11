@@ -5,11 +5,12 @@ import { useState } from "react";
 import {
   LayoutDashboard, Users, FolderKanban, Trello, Boxes, Scissors,
   ShoppingCart, Clock, Calendar, Receipt, BarChart3, Settings,
-  Search, Bell, Menu, X, Plus, LogOut,
+  Search, Menu, X, Plus, LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { WorkspaceRole } from "@/lib/store";
+import FeedbackButton from "@/components/FeedbackButton";
 
 const NAV = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -45,6 +46,7 @@ export default function Frame({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   // Team + Settings are owner/admin only; viewers also lose the "New Job" shortcut.
   // (RLS + the store role guards are the authoritative enforcement — this is the UI layer.)
@@ -157,7 +159,14 @@ export default function Frame({
           <div className="flex-1 max-w-md relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
             <input
-              placeholder="Search jobs, clients, materials…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && search.trim()) {
+                  router.push(`/app/projects?q=${encodeURIComponent(search.trim())}`);
+                }
+              }}
+              placeholder="Search jobs or clients… (Enter)"
               className="w-full pl-9 pr-3 py-2.5 bg-[#0f0f0f] border border-line rounded-lg text-[13px] outline-none focus:border-amber-500"
             />
           </div>
@@ -167,10 +176,6 @@ export default function Frame({
                 <Plus className="w-4 h-4" /> New Job
               </Link>
             )}
-            <button className="w-10 h-10 rounded-lg border border-line bg-[#0f0f0f] grid place-items-center text-neutral-400 hover:text-white hover:border-neutral-700 relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-amber-500" />
-            </button>
           </div>
         </header>
 
@@ -182,6 +187,7 @@ export default function Frame({
         {/* Footer */}
         <footer className="border-t border-line px-8 py-4 text-[12px] text-neutral-600 flex justify-between flex-wrap gap-2">
           <div>© 2026 Crafted &amp; Company · CabinetShop.io v1.0</div>
+          <FeedbackButton workspaceId={activeWorkspaceId} workspaceName={workspaceName} userEmail={userEmail} />
         </footer>
       </div>
     </div>

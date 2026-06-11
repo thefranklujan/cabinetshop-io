@@ -41,6 +41,11 @@ export default function ReportsPage() {
         <div className="card p-6">
           <h2 className="text-[15px] font-bold mb-5">Revenue by Client</h2>
           <div className="space-y-3">
+            {revenueByClient.length === 0 && (
+              <div className="text-[13px] text-neutral-600 py-6 text-center">
+                No client revenue yet. This fills in as jobs get contract totals.
+              </div>
+            )}
             {revenueByClient.map((r) => (
               <div key={r.name}>
                 <div className="flex justify-between text-[12px] mb-1">

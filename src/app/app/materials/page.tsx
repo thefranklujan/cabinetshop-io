@@ -118,8 +118,8 @@ export default function MaterialsPage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="card max-w-lg w-full p-7">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+          <div className="card max-w-lg w-full p-7" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-5">New Material</h2>
             <div className="grid grid-cols-2 gap-3">
               <div><div className="label">SKU</div><input className="input" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
@@ -137,7 +137,7 @@ export default function MaterialsPage() {
             </div>
             <div className="flex gap-2 justify-end mt-6">
               <button className="btn" onClick={() => setOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { if (form.name) { addMaterial(form); setOpen(false); setForm({ sku: "", name: "", category: "Sheet Goods", unit: "ea", costPerUnit: 0, inStock: 0, reorderAt: 0, supplier: "" }); } }}>Create</button>
+              <button className="btn btn-primary" onClick={() => { if (form.name) { addMaterial(form); setOpen(false); setForm({ sku: "", name: "", category: "Sheet Goods", unit: "ea", costPerUnit: 0, inStock: 0, reorderAt: 0, supplier: "" }); } }}>Create Material</button>
             </div>
           </div>
         </div>

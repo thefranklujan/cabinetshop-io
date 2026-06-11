@@ -20,11 +20,18 @@ export default function CutListsPage() {
         sub="Job ready cut lists. Tick parts off as the shop produces them."
       />
 
+      {projects.length === 0 && (
+        <div className="card p-12 text-center text-neutral-500 text-[13px]">
+          Cut lists live under jobs. Create your first project and its parts list starts here.
+        </div>
+      )}
+      {projects.length > 0 && (
+      <>
       <div className="card p-5 mb-5">
         <div className="label mb-2">Select Project</div>
         <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="input max-w-md">
           {projects.map((p) => (
-            <option key={p.id} value={p.id}>{p.jobNumber} · {p.name}</option>
+            <option key={p.id} value={p.id}>{p.jobNumber ? `${p.jobNumber} · ` : ""}{p.name}</option>
           ))}
         </select>
         {project && (
@@ -98,6 +105,8 @@ export default function CutListsPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </>
   );
 }

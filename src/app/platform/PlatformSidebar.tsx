@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Building2, Database, Mail, Activity, Settings, LogOut,
+  LayoutDashboard, Building2, Database, Mail, Activity, MessageSquarePlus, Settings, LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ const NAV = [
   { href: "/platform/shops", label: "Shops", icon: Building2 },
   { href: "/platform/database", label: "Shop Database", icon: Database },
   { href: "/platform/campaigns", label: "Campaigns", icon: Mail },
+  { href: "/platform/feedback", label: "Feedback", icon: MessageSquarePlus },
   { href: "/platform/activity", label: "Activity", icon: Activity },
 ];
 

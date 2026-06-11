@@ -83,15 +83,15 @@ export default function InvoicesPage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="card max-w-lg w-full p-7">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+          <div className="card max-w-lg w-full p-7" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-5">New Invoice</h2>
             <div className="space-y-3">
               <div><div className="label">Invoice Number</div><input className="input" value={form.invoiceNumber} onChange={(e) => setForm({ ...form, invoiceNumber: e.target.value })} /></div>
               <div><div className="label">Project</div>
                 <select className="input" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })}>
                   <option value="">— Choose —</option>
-                  {projects.map((p) => <option key={p.id} value={p.id}>{p.jobNumber} · {p.name}</option>)}
+                  {projects.map((p) => <option key={p.id} value={p.id}>{p.jobNumber ? `${p.jobNumber} · ` : ""}{p.name}</option>)}
                 </select>
               </div>
               <div><div className="label">Amount</div><input type="number" className="input" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} /></div>
@@ -107,7 +107,7 @@ export default function InvoicesPage() {
             </div>
             <div className="flex gap-2 justify-end mt-6">
               <button className="btn" onClick={() => setOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.amount) { addInvoice(form); setOpen(false); setForm({ invoiceNumber: "", projectId: "", amount: 0, status: "Draft", dueDate: "", issuedAt: "", isDeposit: false }); } }}>Create</button>
+              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.amount) { addInvoice(form); setOpen(false); setForm({ invoiceNumber: "", projectId: "", amount: 0, status: "Draft", dueDate: "", issuedAt: "", isDeposit: false }); } }}>Create Invoice</button>
             </div>
           </div>
         </div>

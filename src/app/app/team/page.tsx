@@ -173,8 +173,8 @@ export default function TeamPage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="card max-w-md w-full p-7">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+          <div className="card max-w-md w-full p-7" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-5">Invite Team Member</h2>
             <div className="space-y-4">
               <div>
