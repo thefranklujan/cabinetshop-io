@@ -65,10 +65,10 @@ export const seedSchedule: ScheduleEvent[] = [
 ];
 
 export const seedInvoices: Invoice[] = [
-  { id: "i1", invoiceNumber: "INV-3001", projectId: "p2", amount: 5000, status: "Paid", dueDate: "2026-04-01", issuedAt: "2026-03-25" },
-  { id: "i2", invoiceNumber: "INV-3002", projectId: "p3", amount: 4750, status: "Paid", dueDate: "2026-04-05", issuedAt: "2026-03-29" },
-  { id: "i3", invoiceNumber: "INV-3003", projectId: "p4", amount: 15900, status: "Paid", dueDate: "2026-04-10", issuedAt: "2026-04-01" },
-  { id: "i4", invoiceNumber: "INV-3004", projectId: "p5", amount: 7350, status: "Paid", dueDate: "2026-04-08", issuedAt: "2026-03-28" },
-  { id: "i5", invoiceNumber: "INV-3005", projectId: "p6", amount: 6450, status: "Sent", dueDate: "2026-04-20", issuedAt: "2026-04-05" },
-  { id: "i6", invoiceNumber: "INV-3006", projectId: "p1", amount: 16200, status: "Draft", dueDate: "2026-04-25", issuedAt: "2026-04-08" },
+  { id: "i1", invoiceNumber: "INV-3001", projectId: "p2", amount: 5000, status: "Paid", dueDate: "2026-04-01", issuedAt: "2026-03-25", isDeposit: true },
+  { id: "i2", invoiceNumber: "INV-3002", projectId: "p3", amount: 4750, status: "Paid", dueDate: "2026-04-05", issuedAt: "2026-03-29", isDeposit: false },
+  { id: "i3", invoiceNumber: "INV-3003", projectId: "p4", amount: 15900, status: "Paid", dueDate: "2026-04-10", issuedAt: "2026-04-01", isDeposit: false },
+  { id: "i4", invoiceNumber: "INV-3004", projectId: "p5", amount: 7350, status: "Paid", dueDate: "2026-04-08", issuedAt: "2026-03-28", isDeposit: false },
+  { id: "i5", invoiceNumber: "INV-3005", projectId: "p6", amount: 6450, status: "Sent", dueDate: "2026-04-20", issuedAt: "2026-04-05", isDeposit: false },
+  { id: "i6", invoiceNumber: "INV-3006", projectId: "p1", amount: 16200, status: "Draft", dueDate: "2026-04-25", issuedAt: "2026-04-08", isDeposit: false },
 ];

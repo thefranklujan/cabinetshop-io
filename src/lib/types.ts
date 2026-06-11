@@ -46,6 +46,8 @@ export type Project = {
   cabinetCount?: number;
   priority: "Low" | "Normal" | "High" | "Rush";
   createdAt: string;
+  /** set the first time the job crosses the release-to-production line */
+  releasedAt?: string;
 };
 
 export type Material = {
@@ -110,4 +112,28 @@ export type Invoice = {
   status: "Draft" | "Sent" | "Paid" | "Overdue";
   dueDate: string;
   issuedAt: string;
+  isDeposit: boolean;
+};
+
+// ---- Phase 1: approval gates + readiness (docs/LEAN_PLAN_2026_06_10.md) ----
+
+export type GateStatus = "not_started" | "in_progress" | "waiting_external" | "approved" | "declined" | "n_a";
+export type GateMode = "block" | "warn";
+
+export type Gate = {
+  id: string;
+  projectId: string;
+  gateKey: string;
+  status: GateStatus;
+  mode: GateMode;
+  blocksStage: Stage | null;
+  dueDate: string;
+  resolvedAt?: string;
+};
+
+export type ChecklistRow = {
+  id: string;
+  projectId: string;
+  itemKey: string;
+  status: "pending" | "done" | "n_a";
 };

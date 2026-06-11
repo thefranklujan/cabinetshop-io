@@ -15,7 +15,7 @@ export default function InvoicesPage() {
   const { invoices, projects, addInvoice, updateInvoice, deleteInvoice, canWrite, canManage } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    invoiceNumber: "", projectId: "", amount: 0, status: "Draft" as any, dueDate: "", issuedAt: "",
+    invoiceNumber: "", projectId: "", amount: 0, status: "Draft" as any, dueDate: "", issuedAt: "", isDeposit: false,
   });
 
   const totals = {
@@ -56,7 +56,10 @@ export default function InvoicesPage() {
               const proj = projects.find((p) => p.id === i.projectId);
               return (
                 <tr key={i.id}>
-                  <td className="font-mono text-[12px] text-amber-500">{i.invoiceNumber}</td>
+                  <td className="font-mono text-[12px] text-amber-500">
+                    {i.invoiceNumber}
+                    {i.isDeposit && <span className="chip ml-2">Deposit</span>}
+                  </td>
                   <td className="font-semibold text-white">{proj?.name || "—"}</td>
                   <td className="font-bold text-white">{fmtMoney(i.amount)}</td>
                   <td>
@@ -96,10 +99,15 @@ export default function InvoicesPage() {
                 <div><div className="label">Issued</div><input type="date" className="input" value={form.issuedAt} onChange={(e) => setForm({ ...form, issuedAt: e.target.value })} /></div>
                 <div><div className="label">Due</div><input type="date" className="input" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
               </div>
+              <label className="flex items-center gap-2 text-[13px] text-neutral-300 cursor-pointer">
+                <input type="checkbox" checked={form.isDeposit} onChange={(e) => setForm({ ...form, isDeposit: e.target.checked })} className="accent-amber-500" />
+                This is the deposit invoice
+                <span className="text-neutral-600 text-[11px]">checks "Deposit received" on job readiness when paid</span>
+              </label>
             </div>
             <div className="flex gap-2 justify-end mt-6">
               <button className="btn" onClick={() => setOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.amount) { addInvoice(form); setOpen(false); setForm({ invoiceNumber: "", projectId: "", amount: 0, status: "Draft", dueDate: "", issuedAt: "" }); } }}>Create</button>
+              <button className="btn btn-primary" onClick={() => { if (form.projectId && form.amount) { addInvoice(form); setOpen(false); setForm({ invoiceNumber: "", projectId: "", amount: 0, status: "Draft", dueDate: "", issuedAt: "", isDeposit: false }); } }}>Create</button>
             </div>
           </div>
         </div>

@@ -3,7 +3,10 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { createClient } from "./supabase/client";
 import type {
   Client, Project, Material, CutListItem, PurchaseOrder, TimeEntry, ScheduleEvent, Invoice, Stage,
+  Gate, GateStatus, ChecklistRow,
 } from "./types";
+import { GATE_DEFS, RELEASE_STAGE } from "./readiness";
+import { STAGES } from "./types";
 
 export type WorkspaceRole = "owner" | "admin" | "member" | "viewer";
 
@@ -16,6 +19,8 @@ type Store = {
   time: TimeEntry[];
   schedule: ScheduleEvent[];
   invoices: Invoice[];
+  gates: Gate[];
+  checklistRows: ChecklistRow[];
 };
 
 type Ctx = Store & {
@@ -48,6 +53,12 @@ type Ctx = Store & {
   addInvoice: (i: Omit<Invoice, "id">) => Promise<void>;
   updateInvoice: (id: string, patch: Partial<Invoice>) => Promise<void>;
   deleteInvoice: (id: string) => Promise<void>;
+  /** Move with an override of blocking gates: logs reason to activity (admin/owner only). */
+  overrideMoveProjectStage: (id: string, stage: Stage, reason: string, gateKeys: string[]) => Promise<void>;
+  /** Move past warn-mode gates: logs which warnings were acknowledged. */
+  moveProjectStageWithWarnings: (id: string, stage: Stage, gateKeys: string[]) => Promise<void>;
+  setGateStatus: (projectId: string, gateKey: string, status: GateStatus) => Promise<void>;
+  setChecklistItem: (projectId: string, itemKey: string, label: string, status: "pending" | "done" | "n_a") => Promise<void>;
   resetData: () => Promise<void>;
 };
 
@@ -55,6 +66,7 @@ const StoreContext = createContext<Ctx | null>(null);
 
 const empty: Store = {
   clients: [], projects: [], materials: [], cutlist: [], pos: [], time: [], schedule: [], invoices: [],
+  gates: [], checklistRows: [],
 };
 
 // Supabase row -> camelCase mappers
@@ -73,6 +85,7 @@ const fromProject = (r: any): Project => ({
   woodSpecies: r.wood_species, finish: r.finish, hardware: r.hardware,
   squareFeet: r.square_feet, cabinetCount: r.cabinet_count,
   priority: (r.priority || "Normal") as any, createdAt: r.created_at?.slice(0, 10) || "",
+  releasedAt: r.released_to_production_at || undefined,
 });
 const toProject = (p: Partial<Project>) => ({
   job_number: p.jobNumber, name: p.name, client_id: p.clientId || null, stage: p.stage,
@@ -128,11 +141,22 @@ const toSchedule = (s: Partial<ScheduleEvent>) => ({
 const fromInvoice = (r: any): Invoice => ({
   id: r.id, invoiceNumber: r.invoice_number || "", projectId: r.project_id || "",
   amount: Number(r.amount || 0), status: r.status, dueDate: r.due_date || "",
-  issuedAt: r.issued_at || "",
+  issuedAt: r.issued_at || "", isDeposit: !!r.is_deposit,
 });
 const toInvoice = (i: Partial<Invoice>) => ({
   invoice_number: i.invoiceNumber, project_id: i.projectId, amount: i.amount,
   status: i.status, due_date: i.dueDate || null, issued_at: i.issuedAt || null,
+  is_deposit: i.isDeposit ?? false,
+});
+
+const fromGate = (r: any): Gate => ({
+  id: r.id, projectId: r.project_id, gateKey: r.gate_key, status: r.status,
+  mode: r.mode, blocksStage: r.blocks_stage || null, dueDate: r.due_date || "",
+  resolvedAt: r.resolved_at || undefined,
+});
+
+const fromChecklistRow = (r: any): ChecklistRow => ({
+  id: r.id, projectId: r.project_id, itemKey: r.item_key, status: r.status,
 });
 
 export function StoreProvider({
@@ -172,7 +196,7 @@ export function StoreProvider({
     // Scope every read to the active workspace. RLS already limits rows to the caller's
     // workspaces, but a user in multiple shops would otherwise see merged data — and the
     // workspace switcher depends on this filter to show the selected shop only.
-    const [c, p, m, cl, po, te, sc, iv] = await Promise.all([
+    const [c, p, m, cl, po, te, sc, iv, ga, ck] = await Promise.all([
       supabase.from("clients").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
       supabase.from("projects").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
       supabase.from("materials").select("*").eq("workspace_id", workspaceId).order("name"),
@@ -181,6 +205,8 @@ export function StoreProvider({
       supabase.from("time_entries").select("*").eq("workspace_id", workspaceId).order("started_at", { ascending: false }),
       supabase.from("schedule_events").select("*").eq("workspace_id", workspaceId).order("date"),
       supabase.from("invoices").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+      supabase.from("gates").select("*").eq("workspace_id", workspaceId),
+      supabase.from("checklist_items").select("*").eq("workspace_id", workspaceId),
     ]);
     setStore({
       clients: (c.data || []).map(fromClient),
@@ -191,6 +217,8 @@ export function StoreProvider({
       time: (te.data || []).map(fromTime),
       schedule: (sc.data || []).map(fromSchedule),
       invoices: (iv.data || []).map(fromInvoice),
+      gates: (ga.data || []).map(fromGate),
+      checklistRows: (ck.data || []).map(fromChecklistRow),
     });
     setLoading(false);
   }, [supabase, workspaceId]);
@@ -201,6 +229,33 @@ export function StoreProvider({
 
   // Generic helpers that always include workspace_id
   const ws = { workspace_id: workspaceId };
+
+  const logActivity = async (projectId: string, verb: string, detail: Record<string, unknown>) => {
+    const { data } = await supabase.auth.getUser();
+    // Best-effort audit write; surfaced if it fails so overrides are never silent.
+    const { error } = await supabase.from("activity").insert({
+      ...ws, project_id: projectId, actor_user_id: data.user?.id ?? null, verb, detail,
+    });
+    failed("Recording the activity entry", error);
+  };
+
+  // Shared by plain/warned/overridden moves. Stamps released_to_production_at the
+  // first time a job crosses the release line.
+  const doMove = async (id: string, stage: Stage) => {
+    const proj = store.projects.find((p) => p.id === id);
+    const patch: Record<string, unknown> = { stage };
+    if (
+      proj && !proj.releasedAt &&
+      STAGES.indexOf(stage) >= STAGES.indexOf(RELEASE_STAGE) &&
+      STAGES.indexOf(proj.stage) < STAGES.indexOf(RELEASE_STAGE)
+    ) {
+      patch.released_to_production_at = new Date().toISOString();
+    }
+    const { error } = await supabase.from("projects").update(patch).eq("id", id);
+    if (failed("Moving the job", error)) return false;
+    setStore((s) => ({ ...s, projects: s.projects.map((x) => (x.id === id ? { ...x, stage } : x)) }));
+    return true;
+  };
 
   const value: Ctx = {
     ...store,
@@ -230,8 +285,18 @@ export function StoreProvider({
     },
     addProject: async (p) => {
       if (!canWrite) return denyWrite();
-      const { error } = await supabase.from("projects").insert({ ...toProject(p), ...ws });
+      const { data, error } = await supabase.from("projects").insert({ ...toProject(p), ...ws }).select("id").single();
       if (failed("Adding the project", error)) return;
+      // New jobs get the full gate set with the lean default modes. Jobs created
+      // before Phase 1 have no gate rows and fall back to warn-only (see checkMove).
+      if (data?.id) {
+        const { error: gErr } = await supabase.from("gates").insert(
+          GATE_DEFS.map((d) => ({
+            ...ws, project_id: data.id, gate_key: d.key, mode: d.defaultMode, blocks_stage: d.blocksStage,
+          })),
+        );
+        failed("Creating the job's approval gates", gErr);
+      }
       reload();
     },
     updateProject: async (id, patch) => {
@@ -248,9 +313,60 @@ export function StoreProvider({
     },
     moveProjectStage: async (id, stage) => {
       if (!canWrite) return denyWrite();
-      const { error } = await supabase.from("projects").update({ stage }).eq("id", id);
-      if (failed("Moving the job", error)) return;
-      setStore((s) => ({ ...s, projects: s.projects.map((x) => (x.id === id ? { ...x, stage } : x)) }));
+      await doMove(id, stage);
+    },
+    moveProjectStageWithWarnings: async (id, stage, gateKeys) => {
+      if (!canWrite) return denyWrite();
+      const proj = store.projects.find((p) => p.id === id);
+      if (await doMove(id, stage)) {
+        await logActivity(id, "stage_moved_past_warnings", { from: proj?.stage, to: stage, gates: gateKeys });
+      }
+    },
+    overrideMoveProjectStage: async (id, stage, reason, gateKeys) => {
+      if (!canManage) {
+        if (typeof window !== "undefined") alert("Only owners and admins can override a blocking gate.");
+        return;
+      }
+      const proj = store.projects.find((p) => p.id === id);
+      if (await doMove(id, stage)) {
+        await logActivity(id, "gate_overridden", { from: proj?.stage, to: stage, gates: gateKeys, reason });
+      }
+    },
+    setGateStatus: async (projectId, gateKey, status) => {
+      if (!canWrite) return denyWrite();
+      const def = GATE_DEFS.find((d) => d.key === gateKey);
+      const { data } = await supabase.auth.getUser();
+      const resolved = status === "approved" || status === "n_a" || status === "declined";
+      const { error } = await supabase.from("gates").upsert(
+        {
+          ...ws, project_id: projectId, gate_key: gateKey, status,
+          // upsert keeps mode/blocks_stage for existing rows; legacy jobs get warn
+          // so pre-Phase-1 work is never hard-blocked by touching one gate.
+          mode: store.gates.find((g) => g.projectId === projectId && g.gateKey === gateKey)?.mode
+            ?? (store.gates.some((g) => g.projectId === projectId) ? def?.defaultMode ?? "warn" : "warn"),
+          blocks_stage: def?.blocksStage ?? null,
+          resolved_at: resolved ? new Date().toISOString() : null,
+          resolved_by: resolved ? data.user?.id ?? null : null,
+        },
+        { onConflict: "project_id,gate_key" },
+      );
+      if (failed("Updating the approval gate", error)) return;
+      await logActivity(projectId, "gate_status_changed", { gate: gateKey, status });
+      reload();
+    },
+    setChecklistItem: async (projectId, itemKey, label, status) => {
+      if (!canWrite) return denyWrite();
+      const { data } = await supabase.auth.getUser();
+      const { error } = await supabase.from("checklist_items").upsert(
+        {
+          ...ws, project_id: projectId, item_key: itemKey, label, status,
+          done_at: status === "done" ? new Date().toISOString() : null,
+          done_by: status === "done" ? data.user?.id ?? null : null,
+        },
+        { onConflict: "project_id,item_key" },
+      );
+      if (failed("Updating the checklist item", error)) return;
+      reload();
     },
     addMaterial: async (m) => {
       if (!canWrite) return denyWrite();

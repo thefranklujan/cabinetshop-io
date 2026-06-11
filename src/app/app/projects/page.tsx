@@ -1,12 +1,44 @@
 "use client";
 import { PageHeader } from "@/components/frame/Frame";
 import { useStore, fmtMoney } from "@/lib/store";
-import { STAGES, type Stage } from "@/lib/types";
+import { STAGES, type Stage, type Project } from "@/lib/types";
+import { checkMove, type DerivationCtx } from "@/lib/readiness";
+import { ReadinessChip, ReadinessPanel } from "@/components/ReadinessPanel";
 import { Plus, Trash2, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function ProjectsPage() {
-  const { projects, clients, addProject, updateProject, deleteProject, canWrite, canManage } = useStore();
+  const {
+    projects, clients, gates, checklistRows, invoices, pos, schedule,
+    addProject, deleteProject,
+    moveProjectStage, moveProjectStageWithWarnings, overrideMoveProjectStage,
+    canWrite, canManage,
+  } = useStore();
+  const [panelProject, setPanelProject] = useState<Project | null>(null);
+  const ctx: DerivationCtx = { gates, rows: checklistRows, invoices, pos, schedule };
+
+  // The table's stage select is a second move path; it must respect the same
+  // gates as the board. Uses native confirm/prompt (matches app idiom for
+  // destructive confirms); the board has the richer modal.
+  const requestStageChange = (p: Project, target: Stage) => {
+    const check = checkMove(p, target, gates);
+    if (check.blocked.length === 0 && check.warnings.length === 0) {
+      moveProjectStage(p.id, target);
+      return;
+    }
+    const gateKeys = [...check.blocked, ...check.warnings].map((g) => g.def.key);
+    const names = (l: typeof check.blocked) => l.map((g) => g.def.label).join(", ");
+    if (check.blocked.length > 0) {
+      if (!canManage) {
+        alert(`Not cleared for ${target}. Unresolved approvals: ${names(check.blocked)}. An owner or admin can override.`);
+        return;
+      }
+      const reason = prompt(`Not cleared for ${target}. Unresolved approvals: ${names(check.blocked)}.\n\nOverride reason (required, logged):`);
+      if (reason && reason.trim().length >= 3) overrideMoveProjectStage(p.id, target, reason.trim(), gateKeys);
+    } else if (confirm(`Heads up: missing ${names(check.warnings)}. Move to ${target} anyway?`)) {
+      moveProjectStageWithWarnings(p.id, target, gateKeys);
+    }
+  };
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [stageFilter, setStageFilter] = useState<Stage | "All">("All");
@@ -90,6 +122,7 @@ export default function ProjectsPage() {
               <th>Project</th>
               <th>Client</th>
               <th>Stage</th>
+              <th>Readiness</th>
               <th>Priority</th>
               <th>Contract</th>
               <th>Paid</th>
@@ -109,7 +142,7 @@ export default function ProjectsPage() {
                     <select
                       value={p.stage}
                       disabled={!canWrite}
-                      onChange={(e) => updateProject(p.id, { stage: e.target.value as Stage })}
+                      onChange={(e) => requestStageChange(p, e.target.value as Stage)}
                       className="bg-transparent border border-neutral-800 rounded px-2 py-1 text-[12px] text-amber-500 font-semibold disabled:opacity-60"
                     >
                       {STAGES.map((s) => (
@@ -118,6 +151,9 @@ export default function ProjectsPage() {
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td>
+                    <ReadinessChip project={p} ctx={ctx} onClick={() => setPanelProject(p)} />
                   </td>
                   <td>
                     <span className="chip">{p.priority}</span>
@@ -142,7 +178,7 @@ export default function ProjectsPage() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="text-center py-10 text-neutral-600">
+                <td colSpan={10} className="text-center py-10 text-neutral-600">
                   No projects match.
                 </td>
               </tr>
@@ -150,6 +186,8 @@ export default function ProjectsPage() {
           </tbody>
         </table>
       </div>
+
+      {panelProject && <ReadinessPanel project={panelProject} onClose={() => setPanelProject(null)} />}
 
       {/* Modal */}
       {open && (
