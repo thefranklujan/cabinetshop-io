@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   Building2, DollarSign, Users, Hammer, TrendingUp, AlertTriangle,
-  Database, Mail, MousePointerClick, Eye, Receipt,
+  Database, Inbox, MessageSquarePlus, Receipt,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,13 @@ const fmtMoney = (n: number) =>
 export default async function PlatformDashboard() {
   const supabase = createClient();
   const { data: stats, error } = await supabase.rpc("platform_stats");
+  // Direct counts for the support surfaces; tolerate the tables not existing yet.
+  const [inboxRes, feedbackRes] = await Promise.all([
+    supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "new"),
+    supabase.from("feedback").select("id", { count: "exact", head: true }).in("status", ["new", "seen"]),
+  ]);
+  const newMessages = inboxRes.count ?? 0;
+  const openFeedback = feedbackRes.count ?? 0;
 
   if (error) {
     return (
@@ -51,12 +58,12 @@ export default async function PlatformDashboard() {
         <KPI label="Team Members" value={s.total_members} sub="across all shops" icon={Users} />
       </div>
 
-      {/* Outreach Row */}
+      {/* Pipeline & Support Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" style={{ marginBottom: "32px" }}>
         <KPI label="Prospects in DB" value={s.total_prospects} sub={`${s.prospects_contacted} contacted`} icon={Database} accent />
-        <KPI label="Campaigns Sent" value={s.campaigns_sent} sub={`${s.total_campaigns} total created`} icon={Mail} accent />
-        <KPI label="Email Opens" value={s.total_opens} icon={Eye} />
-        <KPI label="Email Clicks" value={s.total_clicks} icon={MousePointerClick} />
+        <KPI label="New Messages" value={newMessages} sub="public contact form" icon={Inbox} accent={newMessages > 0} />
+        <KPI label="Open Feedback" value={openFeedback} sub="from shop workspaces" icon={MessageSquarePlus} accent={openFeedback > 0} />
+        <KPI label="Stuck Shops" value={s.stuck_shops?.length || 0} sub="0 jobs after 3 days" icon={AlertTriangle} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -111,11 +118,14 @@ export default async function PlatformDashboard() {
           <div className="card" style={{ padding: "24px" }}>
             <h2 className="text-[15px] font-bold" style={{ marginBottom: "16px" }}>Quick Actions</h2>
             <div className="space-y-2">
+              <Link href="/platform/inbox" className="btn btn-primary w-full justify-center">
+                <Inbox className="w-4 h-4" /> Open Inbox
+              </Link>
+              <Link href="/platform/feedback" className="btn w-full justify-center">
+                <MessageSquarePlus className="w-4 h-4" /> Review Feedback
+              </Link>
               <Link href="/platform/database" className="btn w-full justify-center">
                 <Database className="w-4 h-4" /> Add Prospects
-              </Link>
-              <Link href="/platform/campaigns/new" className="btn btn-primary w-full justify-center">
-                <Mail className="w-4 h-4" /> New Campaign
               </Link>
             </div>
           </div>

@@ -38,7 +38,7 @@ export default function EarlyAccessPage() {
           </div>
           <h1 className="text-[28px] font-extrabold" style={{ marginBottom: "8px" }}>You're on the list.</h1>
           <p className="text-neutral-400 text-[15px]" style={{ marginBottom: "24px" }}>
-            We're reviewing early access requests in the order they come in. You'll get an email from us within 48 hours with your login credentials and a personal walkthrough.
+            Your request is saved. We review early access requests in the order they come in, and you'll hear from us by email within two business days to get your shop set up personally.
           </p>
           <p className="text-neutral-500 text-[13px]" style={{ marginBottom: "32px" }}>
             In the meantime, here's what you're getting: a 13-stage production board, materials tracking, cut lists, shop floor time tracking, invoicing, and reports that actually tell you which jobs make money.
@@ -85,7 +85,7 @@ export default function EarlyAccessPage() {
             </div>
             <div>
               <div className="label">Phone</div>
-              <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(512) 555-0100" />
+              <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(713) 555-0100" />
             </div>
             <div>
               <div className="label">How many in the shop?</div>
@@ -100,7 +100,7 @@ export default function EarlyAccessPage() {
             </div>
             <div>
               <div className="label">City</div>
-              <input className="input" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Austin" />
+              <input className="input" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Houston" />
             </div>
             <div>
               <div className="label">State</div>

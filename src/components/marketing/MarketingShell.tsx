@@ -68,12 +68,15 @@ export default function MarketingShell({ children }: { children: React.ReactNode
             <ul className="space-y-2">
               <li><Link href="/about" className="hover:text-white">About</Link></li>
               <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
+              <li><Link href="/support" className="hover:text-white">Support</Link></li>
+              <li><Link href="/privacy" className="hover:text-white">Privacy</Link></li>
+              <li><Link href="/terms" className="hover:text-white">Terms</Link></li>
             </ul>
           </div>
         </div>
         <div className="max-w-[1240px] mx-auto px-7 mt-10 pt-6 border-t border-line text-[12px] text-neutral-600 flex flex-wrap justify-between gap-2">
           <div>© 2026 Crafted &amp; Company. All rights reserved.</div>
-          <div>Built in Austin, TX</div>
+          <div>Built in Houston, TX</div>
         </div>
       </footer>
     </div>

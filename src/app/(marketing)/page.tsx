@@ -44,7 +44,7 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-2xl overflow-hidden mt-20">
             {[
               { n: "13", l: "Production stages, out of the box" },
-              { n: "12", l: "Core modules built in" },
+              { n: "15", l: "Core modules built in" },
               { n: "0", l: "Spreadsheets required" },
               { n: "1", l: "Source of truth for your shop" },
             ].map((m) => (
@@ -76,14 +76,14 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               { i: Users, t: "Clients CRM", d: "Homeowners, designers, GCs, and repeat accounts. Every project and payment tied to the right person." },
-              { i: Hammer, t: "Projects / Jobs", d: "Digital job folders with scope, drawings, photos, measurements, and a full timeline." },
+              { i: Hammer, t: "Projects / Jobs", d: "Digital job folders with specs, priority, readiness state, and a timeline of what was approved and when." },
               { i: Trello, t: "Live Production Board", d: "Kanban across 13 cabinet shop stages. Drag jobs forward, see bottlenecks instantly." },
-              { i: Boxes, t: "Materials & Inventory", d: "Sheet goods, hardwood, hardware, finishes. Track in stock, reserved, and on order per job." },
+              { i: Boxes, t: "Materials & Inventory", d: "Sheet goods, hardwood, hardware, finishes. Reorder thresholds and low stock alerts before delivery morning." },
               { i: Scissors, t: "Cut Lists & BOM", d: "Attach cut lists to every job, push to the shop, tick off pieces as they're made." },
-              { i: Receipt, t: "Invoices & POs", d: "Generate purchase orders, invoices, track delivery dates. Get paid faster." },
+              { i: Receipt, t: "Invoices & POs", d: "Track purchase orders and invoices per job. Deposit tracking feeds each job's readiness." },
               { i: Clock, t: "Shop Floor Time", d: "Clock in/out per job and per stage. Owners finally know true hours per cabinet run." },
               { i: Calendar, t: "Schedule & Install", d: "Delivery and install calendar your crew can see from the van." },
-              { i: BarChart3, t: "Reports & KPIs", d: "Revenue, WIP value, stage bottlenecks, margin per job. Numbers that run a shop." },
+              { i: BarChart3, t: "Reports & KPIs", d: "Revenue, WIP value, stage aging, bottleneck callouts. Numbers that run a shop." },
             ].map((f) => {
               const Icon = f.i;
               return (
@@ -106,7 +106,7 @@ export default function Home() {
           <div className="flex items-end justify-between flex-wrap gap-8 mb-12">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-amber-500 font-bold mb-3">
-                Pipefy grade, cabinet shop tuned
+                Visual management, cabinet shop tuned
               </div>
               <h2 className="text-[clamp(32px,4vw,52px)] font-extrabold tracking-tight leading-none max-w-[680px]">
                 The production board your foreman dreamed about.
@@ -160,7 +160,7 @@ export default function Home() {
             <span className="text-amber-500">Get into the shop.</span>
           </h2>
           <p className="text-neutral-400 mt-5 max-w-lg mx-auto text-[16px]">
-            Free forever to start. No credit card. Built by people who actually run a cabinet shop.
+            Free while we are in pilot. No credit card. Built by people who actually run a cabinet shop.
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-9">
             <Link href="/sign-up" className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-ink font-bold px-7 py-4 rounded-lg transition">

@@ -2,66 +2,47 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// Lead capture goes through submit_early_access(), a SECURITY DEFINER function
+// that validates, rate-limits, and owns the write. This route returns success
+// ONLY when the database confirmed the write — the old version swallowed every
+// error and told dropped leads they were on the list.
 export async function POST(request: NextRequest) {
+  let body: Record<string, unknown>;
   try {
-    const body = await request.json();
-    const { shopName, ownerName, email, phone, city, state, employeeCount, website } = body;
-
-    if (!shopName || !email) {
-      return NextResponse.json({ error: "Shop name and email are required" }, { status: 400 });
-    }
-
-    const supabase = createClient();
-
-    // Check if this email already exists in shop_database
-    const { data: existing } = await supabase
-      .from("shop_database")
-      .select("id, status")
-      .eq("email", email)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      // Update existing prospect to "interested"
-      await supabase
-        .from("shop_database")
-        .update({
-          status: "interested",
-          owner_name: ownerName || null,
-          phone: phone || null,
-          city: city || null,
-          state: state || null,
-          website: website || null,
-          employee_count: employeeCount ? parseInt(employeeCount) || null : null,
-          notes: `Early access request. Team size: ${employeeCount || "not specified"}`,
-        })
-        .eq("id", existing[0].id);
-    } else {
-      // Create new prospect as "interested"
-      await supabase.from("shop_database").insert({
-        name: shopName,
-        owner_name: ownerName || null,
-        email,
-        phone: phone || null,
-        city: city || null,
-        state: state || null,
-        website: website || null,
-        source: "early_access",
-        status: "interested",
-        employee_count: employeeCount ? parseInt(employeeCount) || null : null,
-        notes: `Early access request. Team size: ${employeeCount || "not specified"}`,
-      });
-    }
-
-    // Log activity
-    await supabase.from("platform_activity").insert({
-      action: "early_access_request",
-      actor_email: email,
-      target: shopName,
-      meta: { city, state, employeeCount },
-    });
-
-    return NextResponse.json({ success: true });
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Failed to submit" }, { status: 500 });
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  const s = (v: unknown, max: number) =>
+    typeof v === "string" ? v.trim().slice(0, max) : "";
+  const shopName = s(body.shopName, 200);
+  const email = s(body.email, 320);
+  if (!shopName || !email) {
+    return NextResponse.json({ error: "Shop name and email are required" }, { status: 400 });
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.rpc("submit_early_access", {
+    p_shop_name: shopName,
+    p_owner_name: s(body.ownerName, 200) || null,
+    p_email: email,
+    p_phone: s(body.phone, 50) || null,
+    p_city: s(body.city, 100) || null,
+    p_state: s(body.state, 50) || null,
+    p_employee_count: s(body.employeeCount, 20) || null,
+    p_website: s(body.website, 300) || null,
+  });
+
+  if (error) {
+    console.error("early-access submit failed:", error.message);
+    const friendly = error.message.includes("too many requests")
+      ? "Too many requests from this email. Please try again in an hour."
+      : error.message.includes("invalid")
+        ? "Please check the shop name and email and try again."
+        : "We could not save your request. Please email hello@cabinetshop.io and we will set you up directly.";
+    return NextResponse.json({ error: friendly }, { status: error.message.includes("invalid") ? 400 : 502 });
+  }
+
+  return NextResponse.json({ success: true });
 }

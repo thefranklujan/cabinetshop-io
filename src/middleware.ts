@@ -2,6 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Canonical host: www permanently redirects to the apex.
+  const host = request.headers.get("host") || "";
+  if (host === "www.cabinetshop.io") {
+    const url = request.nextUrl.clone();
+    url.host = "cabinetshop.io";
+    url.protocol = "https";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

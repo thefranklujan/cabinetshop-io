@@ -1,3 +1,11 @@
+// Fail build/start loudly when the app cannot possibly work. A missing Supabase
+// env previously surfaced as per-request runtime crashes instead of a clear error.
+for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]) {
+  if (!process.env[key]) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+}
+
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,

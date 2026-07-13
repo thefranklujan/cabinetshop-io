@@ -19,16 +19,16 @@ export default function About() {
       <section className="py-24">
         <div className="max-w-[820px] mx-auto px-7 prose prose-invert space-y-7 text-[16px] leading-relaxed text-neutral-300">
           <p>
-            CabinetShop.io was born inside a real cabinet shop in Austin, Texas. We were running a $1.6M custom kitchen business with a whiteboard, a stack of spreadsheets, and a group text. Jobs got lost. Materials ran out the morning of a delivery. The foreman called the owner six times a day for status.
+            CabinetShop.io comes out of a real custom cabinet and kitchen business in Houston, Texas. We ran a $1.6M design build shop on a whiteboard, a stack of spreadsheets, and a group text. Jobs got lost. Materials ran out the morning of a delivery. The foreman called the owner six times a day for status.
           </p>
           <p>
-            We tried every tool out there. Construction PMs were too generic. ERPs were too heavy. Pipefy was close but not built for the way wood actually moves through a shop. So we built our own.
+            We tried every tool out there. Construction PMs were too generic. ERPs were too heavy. Nothing was built for the way wood actually moves through a shop. So we built our own.
           </p>
           <p>
-            Today CabinetShop.io is the operating system that runs our shop, every day. We rolled it out to a few friends in the industry and they asked if they could use it. So here it is.
+            CabinetShop.io is that system, productized: the 13 stages, the approval gates, the readiness checklist, and the daily constraints board that keep a custom shop flowing. It is in pilot right now with a small number of shops, and we onboard each one personally.
           </p>
           <p>
-            We're not VC funded. We don't have a sales team. Every dollar we charge goes straight back into the product. If you have a feature request, the founder reads it. If you have a bug, the founder fixes it. If you want to talk shop, the founder picks up the phone.
+            We're not VC funded. We don't have a sales team. If you have a feature request, the founder reads it. If you have a bug, the founder fixes it.
           </p>
           <div className="border-l-2 border-amber-500 pl-6 my-10">
             <div className="text-[18px] text-paper font-semibold mb-2">
