@@ -5,7 +5,7 @@ import { useState } from "react";
 import {
   LayoutDashboard, Users, FolderKanban, Trello, Boxes, Scissors,
   ShoppingCart, Clock, Calendar, Receipt, BarChart3, Settings,
-  Search, Menu, X, Plus, LogOut,
+  Search, Menu, Plus, LogOut, ListTodo, AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,8 @@ const NAV = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/board", label: "Production Board", icon: Trello },
   { href: "/app/projects", label: "Projects", icon: FolderKanban },
+  { href: "/app/tasks", label: "Tasks", icon: ListTodo },
+  { href: "/app/constraints", label: "Constraints", icon: AlertTriangle },
   { href: "/app/clients", label: "Clients", icon: Users },
   { href: "/app/materials", label: "Materials", icon: Boxes },
   { href: "/app/cutlists", label: "Cut Lists", icon: Scissors },

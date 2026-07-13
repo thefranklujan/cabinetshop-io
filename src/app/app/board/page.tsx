@@ -4,8 +4,11 @@ import { useStore, fmtMoney } from "@/lib/store";
 import { STAGES, type Stage, type Project } from "@/lib/types";
 import { checkMove, RELEASE_STAGE, type MoveCheck, type DerivationCtx } from "@/lib/readiness";
 import { ReadinessChip, ReadinessPanel } from "@/components/ReadinessPanel";
+import { daysInStage } from "@/lib/aging";
+import { blockedProjectIds } from "@/lib/constraints";
 import { useState } from "react";
-import { GripVertical, ChevronLeft, ChevronRight, ShieldAlert, AlertTriangle } from "lucide-react";
+import Link from "next/link";
+import { GripVertical, ChevronLeft, ChevronRight, ShieldAlert, AlertTriangle, Clock } from "lucide-react";
 
 const PRIORITY_COLOR: Record<string, string> = {
   Low: "text-neutral-500",
@@ -18,10 +21,11 @@ type PendingMove = { project: Project; target: Stage; check: MoveCheck };
 
 export default function BoardPage() {
   const {
-    projects, clients, gates, checklistRows, invoices, pos, schedule,
+    projects, clients, gates, checklistRows, invoices, pos, schedule, tasks, activity,
     moveProjectStage, moveProjectStageWithWarnings, overrideMoveProjectStage,
     canWrite, canManage,
   } = useStore();
+  const blockedIds = blockedProjectIds(tasks);
   const [dragId, setDragId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingMove | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
@@ -95,12 +99,14 @@ export default function BoardPage() {
               <div className="space-y-2 min-h-[60px]">
                 {cards.map((p) => {
                   const client = clients.find((c) => c.id === p.clientId);
+                  const age = daysInStage(p, activity);
+                  const blocked = blockedIds.has(p.id);
                   return (
                     <div
                       key={p.id}
                       draggable={canWrite}
                       onDragStart={() => canWrite && setDragId(p.id)}
-                      className={`bg-[#161616] border border-neutral-800 rounded-lg p-3 hover:border-amber-500/40 group ${canWrite ? "cursor-grab" : ""}`}
+                      className={`bg-[#161616] border rounded-lg p-3 hover:border-amber-500/40 group ${canWrite ? "cursor-grab" : ""} ${blocked ? "border-red-500/40" : "border-neutral-800"}`}
                     >
                       <div className="flex items-start gap-2 mb-2">
                         <GripVertical className="w-3 h-3 text-neutral-700 mt-0.5 shrink-0" />
@@ -109,16 +115,33 @@ export default function BoardPage() {
                           <div className="text-[13px] font-bold text-white truncate">{p.name}</div>
                           <div className="text-[11px] text-neutral-500 truncate">{client?.name}</div>
                         </div>
+                        {blocked && (
+                          <Link href="/app/constraints" title="This job has an open blocker or is waiting on someone" className="shrink-0">
+                            <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                          </Link>
+                        )}
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
                         <span className={`font-semibold ${PRIORITY_COLOR[p.priority]}`}>● {p.priority}</span>
                         <span className="text-amber-500 font-bold">{fmtMoney(p.contractTotal)}</span>
                       </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="text-[10px] text-neutral-600">Due {p.dueDate}</div>
-                        {STAGES.indexOf(p.stage) < releaseIdx && (
-                          <ReadinessChip project={p} ctx={ctx} onClick={() => setPanelProject(p)} />
-                        )}
+                      <div className="flex items-center justify-between mt-1 gap-2">
+                        <div className="text-[10px] text-neutral-600 truncate">Due {p.dueDate}</div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {p.stage !== "Complete" && (
+                            <span
+                              title={`${age} day${age === 1 ? "" : "s"} in ${p.stage}`}
+                              className={`text-[10px] font-semibold flex items-center gap-0.5 ${
+                                age >= 14 ? "text-red-400" : age >= 7 ? "text-orange-400" : "text-neutral-600"
+                              }`}
+                            >
+                              <Clock className="w-2.5 h-2.5" /> {age}d
+                            </span>
+                          )}
+                          {STAGES.indexOf(p.stage) < releaseIdx && (
+                            <ReadinessChip project={p} ctx={ctx} onClick={() => setPanelProject(p)} />
+                          )}
+                        </div>
                       </div>
                       {canWrite && (
                         <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 mt-2">

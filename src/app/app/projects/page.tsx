@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 export default function ProjectsPage() {
   const {
-    projects, clients, gates, checklistRows, invoices, pos, schedule,
+    projects, clients, gates, checklistRows, invoices, pos, schedule, templates,
     addProject, deleteProject,
     moveProjectStage, moveProjectStageWithWarnings, overrideMoveProjectStage,
     canWrite, canManage,
@@ -63,6 +63,7 @@ export default function ProjectsPage() {
     cabinetCount: 0,
     priority: "Normal" as "Low" | "Normal" | "High" | "Rush",
   });
+  const [templateId, setTemplateId] = useState("");
 
   const filtered = projects
     .filter((p) => stageFilter === "All" || p.stage === stageFilter)
@@ -74,9 +75,10 @@ export default function ProjectsPage() {
 
   const submit = () => {
     if (!form.name || !form.clientId) return;
-    addProject(form);
+    addProject(form, templateId || undefined);
     setOpen(false);
     setForm({ ...form, name: "", jobNumber: "", contractTotal: 0, paid: 0 });
+    setTemplateId("");
   };
 
   return (
@@ -199,6 +201,20 @@ export default function ProjectsPage() {
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
           <div className="card max-w-2xl w-full p-7" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-5">New Project</h2>
+            {templates.length > 0 && (
+              <div className="mb-4">
+                <div className="label">Start from template</div>
+                <select className="input" value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+                  <option value="">Blank job (standard gates only)</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-neutral-600 mt-1.5">
+                  Copies the template&apos;s tasks, checklist items, and gate settings onto this job. Templates are managed in Settings.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="label">Job Number</div>

@@ -21,12 +21,10 @@ export default function TeamPage() {
 
   const reload = async () => {
     if (!workspaceId) return;
-    const { data: m } = await supabase
-      .from("workspace_members")
-      .select("user_id, role, joined_at")
-      .eq("workspace_id", workspaceId);
-
-    // Fetch emails by joining auth.users via an RPC would be ideal; for now just show user_id
+    // workspace_member_emails is a SECURITY DEFINER RPC that joins auth.users,
+    // guarded by the caller's own workspace membership.
+    const { data: m, error: mErr } = await supabase.rpc("workspace_member_emails", { ws: workspaceId });
+    if (mErr) setErr(`Could not load members: ${mErr.message}`);
     setMembers((m || []) as any);
 
     const { data: i, error: iErr } = await supabase
@@ -114,10 +112,10 @@ export default function TeamPage() {
               <div key={m.user_id} className="flex items-center justify-between py-3 border-b border-neutral-900 last:border-0">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 grid place-items-center text-amber-500 text-xs font-bold">
-                    {m.user_id.slice(0, 2).toUpperCase()}
+                    {(m.email || m.user_id).slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-[13px] font-semibold text-white font-mono">{m.user_id.slice(0, 8)}…</div>
+                    <div className="text-[13px] font-semibold text-white">{m.email || `${m.user_id.slice(0, 8)}…`}</div>
                     <div className="text-[11px] text-neutral-500">Joined {m.joined_at?.slice(0, 10)}</div>
                   </div>
                 </div>

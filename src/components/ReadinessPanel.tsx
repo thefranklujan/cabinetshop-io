@@ -3,6 +3,7 @@ import { useStore } from "@/lib/store";
 import type { Project, GateStatus } from "@/lib/types";
 import { GATE_DEFS, checklistFor, readinessFor, type DerivationCtx } from "@/lib/readiness";
 import { CheckCircle2, Circle, MinusCircle, ShieldAlert, ShieldCheck, X } from "lucide-react";
+import JobTimeline from "@/components/JobTimeline";
 
 const GATE_STATUS_OPTIONS: { value: GateStatus; label: string }[] = [
   { value: "not_started", label: "Not started" },
@@ -43,7 +44,7 @@ export function ReadinessChip({ project, ctx, onClick }: { project: Project; ctx
 }
 
 export function ReadinessPanel({ project, onClose }: { project: Project; onClose: () => void }) {
-  const { gates, checklistRows, invoices, pos, schedule, canWrite, setGateStatus, setChecklistItem } = useStore();
+  const { gates, checklistRows, invoices, pos, schedule, canWrite, setGateStatus, setGateDueDate, setChecklistItem } = useStore();
   const ctx: DerivationCtx = { gates, rows: checklistRows, invoices, pos, schedule };
   const items = checklistFor(project.id, ctx);
   const readiness = readinessFor(project, ctx);
@@ -126,15 +127,24 @@ export function ReadinessPanel({ project, onClose }: { project: Project; onClose
                   </div>
                 </div>
                 {canWrite ? (
-                  <select
-                    value={status}
-                    onChange={(e) => setGateStatus(project.id, def.key, e.target.value as GateStatus)}
-                    className={`bg-[#0f0f0f] border border-line rounded-lg px-2.5 py-1.5 text-[12px] outline-none focus:border-amber-500 ${GATE_STATUS_COLOR[status]}`}
-                  >
-                    {GATE_STATUS_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                  <span className="flex items-center gap-2 shrink-0">
+                    <input
+                      type="date"
+                      value={gate?.dueDate || ""}
+                      onChange={(e) => setGateDueDate(project.id, def.key, e.target.value)}
+                      title="Approval due date — past due shows on the Constraints board"
+                      className="bg-[#0f0f0f] border border-line rounded-lg px-2 py-1.5 text-[11px] text-neutral-400 outline-none focus:border-amber-500 w-[120px]"
+                    />
+                    <select
+                      value={status}
+                      onChange={(e) => setGateStatus(project.id, def.key, e.target.value as GateStatus)}
+                      className={`bg-[#0f0f0f] border border-line rounded-lg px-2.5 py-1.5 text-[12px] outline-none focus:border-amber-500 ${GATE_STATUS_COLOR[status]}`}
+                    >
+                      {GATE_STATUS_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </span>
                 ) : (
                   <span className={`text-[12px] font-semibold ${GATE_STATUS_COLOR[status]}`}>
                     {GATE_STATUS_OPTIONS.find((o) => o.value === status)?.label}
@@ -143,6 +153,10 @@ export function ReadinessPanel({ project, onClose }: { project: Project; onClose
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-7 pt-6 border-t border-neutral-900">
+          <JobTimeline projectId={project.id} />
         </div>
       </div>
     </div>

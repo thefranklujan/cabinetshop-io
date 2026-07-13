@@ -136,4 +136,89 @@ export type ChecklistRow = {
   projectId: string;
   itemKey: string;
   status: "pending" | "done" | "n_a";
+  /** label + required matter for template-added custom items (Phase 4) */
+  label?: string;
+  required?: boolean;
+};
+
+// ---- Phase 2: tasks + constraints (docs/LEAN_PLAN_2026_06_10.md §8) ----
+
+export type TaskStatus = "open" | "in_progress" | "done" | "canceled";
+export type TaskTeam = "office" | "shop" | "field" | "design";
+export type WaitingOn = "client" | "design" | "material" | "vendor" | "install_date" | "internal";
+
+export const WAITING_ON_LABELS: Record<WaitingOn, string> = {
+  client: "Waiting on Client",
+  design: "Waiting on Design",
+  material: "Waiting on Material",
+  vendor: "Waiting on Vendor",
+  install_date: "Waiting on Install Date",
+  internal: "Waiting Internal",
+};
+
+export type Task = {
+  id: string;
+  projectId?: string;
+  title: string;
+  ownerUserId?: string;
+  team?: TaskTeam;
+  dueDate: string;
+  status: TaskStatus;
+  priority: "Low" | "Normal" | "High" | "Rush";
+  isBlocker: boolean;
+  waitingOn?: WaitingOn;
+  stage?: string;
+  doneAt?: string;
+  createdAt: string;
+};
+
+/** Workspace member with email, from the workspace_member_emails() RPC. */
+export type Member = {
+  userId: string;
+  email: string;
+  role: string;
+  joinedAt: string;
+};
+
+// ---- Phase 3: per-job message timeline (docs/LEAN_PLAN_2026_06_10.md §9) ----
+
+export type MessageKind = "internal_note" | "client_note" | "approval_request" | "client_response" | "system";
+
+export type Message = {
+  id: string;
+  projectId: string;
+  kind: MessageKind;
+  body: string;
+  gateId?: string;
+  taskId?: string;
+  authorUserId: string;
+  createdAt: string;
+};
+
+/** Append-only audit rows (stage moves, gate changes, overrides) from Phase 1. */
+export type ActivityRow = {
+  id: string;
+  projectId: string;
+  actorUserId?: string;
+  verb: string;
+  detail: Record<string, unknown>;
+  createdAt: string;
+};
+
+// ---- Phase 4: standard work templates (docs/LEAN_PLAN_2026_06_10.md §10) ----
+
+export type JobTemplate = {
+  id: string;
+  name: string;
+  jobType: string;
+  isDefault: boolean;
+  createdAt: string;
+};
+
+export type TemplateItem = {
+  id: string;
+  templateId: string;
+  kind: "task" | "checklist" | "gate";
+  payload: Record<string, unknown>;
+  sort: number;
 };

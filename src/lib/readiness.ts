@@ -90,13 +90,23 @@ export type ChecklistState = ChecklistDef & { state: "done" | "pending" | "n_a";
 
 /** Effective checklist: auto-derivation OR a manual row can satisfy an item. */
 export function checklistFor(projectId: string, ctx: DerivationCtx): ChecklistState[] {
-  return CHECKLIST_DEFS.map((def) => {
+  const standard = CHECKLIST_DEFS.map((def): ChecklistState => {
     const row = ctx.rows.find((r) => r.projectId === projectId && r.itemKey === def.key);
     const auto = autoState(def, projectId, ctx);
     if (auto) return { ...def, state: "done", fromAuto: true };
     if (row && row.status !== "pending") return { ...def, state: row.status, fromAuto: false };
     return { ...def, state: "pending", fromAuto: false };
   });
+  // Custom items added by a job template (Phase 4): rows whose key is not a
+  // standard definition. Always manual; label/required come from the row.
+  const known = new Set(CHECKLIST_DEFS.map((d) => d.key));
+  const custom = ctx.rows
+    .filter((r) => r.projectId === projectId && !known.has(r.itemKey))
+    .map((r): ChecklistState => ({
+      key: r.itemKey, label: r.label || r.itemKey, required: r.required ?? true, auto: null,
+      state: r.status, fromAuto: false,
+    }));
+  return [...standard, ...custom];
 }
 
 export type Readiness = {

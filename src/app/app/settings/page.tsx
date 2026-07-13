@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2, Check, AlertTriangle } from "lucide-react";
+import TemplateManager from "@/components/TemplateManager";
 
 const CURRENCIES = ["USD", "CAD", "EUR", "GBP", "MXN", "AUD"];
 
@@ -176,6 +177,8 @@ export default function SettingsPage() {
           </p>
         </div>
       </div>
+
+      <TemplateManager />
     </>
   );
 }
