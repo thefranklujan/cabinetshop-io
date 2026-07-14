@@ -153,3 +153,50 @@ Executed per the unified handoff (baseline `d1d6c99`, verified no drift, tests r
   parked; canonical redirect + SSL on the real domain verifiable only after this).
   (2) One human smoke: sign into production and glance at Tasks, Constraints, Team
   emails, Settings templates — password sign-in is a step Claude does not perform.
+
+---
+
+## Launch-gate addendum — 2026-07-14 (afternoon)
+
+Baseline re-verified independently before any action: main == origin/main == `c4263ef`,
+worktree clean, `npm test` fresh run 15/15 (2 files), production deployment
+`app-f2nfba8ek` Ready and current, and the live migration list shows all five July
+migrations applied (versions 20260714163250 through 20260714163421).
+
+**DNS correction of record.** The July 13 claim "NO TXT records" was wrong: it checked
+only the apex name. `_dmarc.cabinetshop.io TXT "v=DMARC1; p=quarantine; adkim=r;
+aspf=r; rua=mailto:dmarc_rua@onsecureserver.net;"` EXISTS and must survive the cutover.
+Therefore: do NOT switch nameservers. Keep GoDaddy DNS and change routing records only.
+Vercel's current recommendation (re-pulled today via `vercel domains inspect`):
+`A cabinetshop.io 76.76.21.21` [recommended]. Because `www` is already
+`CNAME → cabinetshop.io` at GoDaddy, the ONLY required edit is the apex A records:
+
+- DELETE: `A @ 3.33.130.190` and `A @ 15.197.148.33` (GoDaddy parking)
+- ADD:    `A @ 76.76.21.21`
+- Touch nothing else (keep `_dmarc` TXT, keep `www` CNAME, keep nameservers).
+
+No authenticated GoDaddy session was available (Chrome extension not connected;
+Claude does not enter passwords), so the edit itself is the remaining Frank step.
+Post-change verification plan is unchanged: apex 200 product, www 308 to apex, SSL
+both hosts, all public routes, fresh controlled form round-trips with readback cleanup.
+
+**Production spot-check today (pre-DNS, via app-phi-neon.vercel.app):** security
+headers verified live (HSTS preload, X-Frame-Options DENY, nosniff, referrer-policy,
+permissions-policy); zero console errors and zero failed network requests on sign-in
+and pricing (all assets 200 from dpl_8fFML4Wp…); mobile 375px no horizontal overflow;
+`/app/dashboard` unauthenticated correctly redirects to `/sign-in` in production.
+Form round-trips were NOT re-run today (yesterday's post-deploy round-trip with 1/1/1
+row cleanup stands; next run happens on the real domain after DNS).
+
+**Authenticated smoke: paused at authentication.** No stored session in the Browser
+pane and no connected Chrome. The sign-in page is open and waiting; Frank completes
+only the password step, then the full smoke (Dashboard, Board, Tasks, Constraints,
+Projects, Team emails, Settings templates, desktop + mobile) proceeds without him.
+
+**Design specification delivered (spec only, no implementation):**
+`docs/design-spec.md` — proposed evolution (not teardown) of the current identity:
+3 core colors (ink/paper/amber) + 5 semantic tokens, Archivo + IBM Plex Sans/Mono via
+next/font (the app currently loads NO typeface), 8-step spacing scale, grouped sidebar
++ mobile bottom bar, locked board-card anatomy, shared empty/loading/error components,
+responsive matrix, 6-step rollout. Six decisions flagged for Frank in §10; nothing
+gets implemented until he approves.
