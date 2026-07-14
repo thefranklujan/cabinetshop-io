@@ -120,3 +120,36 @@ audit of the same date.
 
 None created. Production data untouched (probe inserts were denied by policy and
 not retried; verification writes happen only inside the rolled-back SQL script).
+
+---
+
+## Deploy addendum — 2026-07-14
+
+Executed per the unified handoff (baseline `d1d6c99`, verified no drift, tests re-run fresh: 15/15).
+
+- **Migrations applied to live DB** (Supabase MCP recovered): `phase2_tasks_and_member_emails`,
+  `phase3_job_messages`, `phase4_job_templates`, `public_lead_capture`,
+  `same_workspace_enforcement`. Confirmed absent immediately before applying
+  (live migration list ended at `20260611145908`).
+- **Verification suite ran against live DB in an aborted transaction (nothing persisted):**
+  owner CRUD on tasks, messages append-only (0 rows updatable), spoofed-author insert
+  rejected, viewer read-only (0 rows on update), member-emails RPC returns own workspace
+  and 0 rows for a foreign workspace, submit_early_access accepts valid + rejects invalid,
+  contact rate limit trips on the 6th message in an hour, anon sees 0 rows in
+  contact_messages/shop_database. Cross-workspace triggers proven with a REAL second-
+  workspace project: task, message, gate, and template cross-references all rejected.
+- **Deployed** `main` (`d1d6c99`) via `npx vercel deploy --prod --yes` →
+  `app-f2nfba8ek-craftedkitchens.vercel.app`, confirmed current production (promote
+  returned already-current). Build on Next 14.2.35, 37 pages.
+- **Production verified** via https://app-phi-neon.vercel.app: all public routes 200,
+  "Free in pilot" + "Houston, Texas" live, zero "Austin". **End-to-end form round-trips
+  against production returned real success and real rows** (contact_messages,
+  shop_database, platform_activity: 1 each), then the 3 verification rows were deleted
+  (1/1/1 confirmed).
+- **Supabase security advisors post-migration:** WARN-level only, no errors. Backlog:
+  pin `search_path` on 8 legacy functions, revoke unneeded RPC EXECUTE on internal
+  helper functions, enable leaked-password protection in Auth settings.
+- **Still open:** (1) GoDaddy nameservers → ns1/ns2.vercel-dns.com (apex/www still
+  parked; canonical redirect + SSL on the real domain verifiable only after this).
+  (2) One human smoke: sign into production and glance at Tasks, Constraints, Team
+  emails, Settings templates — password sign-in is a step Claude does not perform.
