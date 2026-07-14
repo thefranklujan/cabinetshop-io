@@ -200,3 +200,64 @@ next/font (the app currently loads NO typeface), 8-step spacing scale, grouped s
 + mobile bottom bar, locked board-card anatomy, shared empty/loading/error components,
 responsive matrix, 6-step rollout. Six decisions flagged for Frank in §10; nothing
 gets implemented until he approves.
+
+---
+
+## Rollout step 1 addendum — 2026-07-14 (evening)
+
+Baseline re-verified: main == origin/main == `197ecc6` clean, `npm test` 15/15,
+production `app-f2nfba8ek` current, all five July migrations present
+(20260714163250–163421).
+
+**Design spec APPROVED.** `docs/design-spec.md` PROPOSED → APPROVED with Frank's six
+decisions recorded (Archivo + IBM Plex Sans/Mono; 4-item mobile bottom bar; right
+drawer / mobile sheet; grouped sidebar; remove marketing glow in the marketing step;
+park light theme) and the spacing clarification applied (routine spacing via
+tokens/Tailwind classes/component variants; inline styles only for data-derived values).
+
+**Rollout step 1 implemented and deployed** (commit `d85c7e6`, deploy
+`dpl_81KsodupbGvm9fJjtiM29W11Pipn` = `app-8k3ew41qz`, READY + current production).
+Files changed: `docs/design-spec.md`, `src/app/layout.tsx`, `src/app/globals.css`,
+`tailwind.config.ts` only — no component/page/nav/behavior files.
+- Fonts: next/font self-hosts Archivo (600/700/800), IBM Plex Sans (400/500/600),
+  IBM Plex Mono (500/600), latin subset, display:swap, CSS variables on `<html>`.
+- Tokens: ink/paper/amber core, neutral tints, 5 semantic status colors, typography,
+  4–64 spacing scale, radius/focus/modal-shadow; mapped into Tailwind (Inter fallback
+  removed). Foundational colors + shared component classes consume tokens at identical
+  values (zero visual regression beyond the font swap); tabular-nums on tables + mono.
+
+**Verification.** lint clean, `tsc --noEmit` clean, tests 15/15, production build
+compiled with fonts self-hosted. Local production-build browser check (byte-identical
+to the deploy) at 375 / 768 / 1440: body = IBM Plex Sans, h1 = Archivo, mono var =
+IBM Plex Mono, tokens resolve (--ink #0a0a0a, --amber #f59e0b, --ok #34d399), no
+horizontal overflow, hero glow preserved, four self-hosted woff2 files load (200),
+zero console errors, zero failed requests. Live production (app-phi-neon.vercel.app)
+confirmed serving `dpl_81Kso…` with the four woff2 fonts, all 10 public routes 200,
+all five security headers, zero "Austin" / Houston present / "Free in pilot" live,
+`/app/dashboard` 307 → /sign-in. (Browser-pane render of the live URL hung mid-check;
+HTTP + identical-build browser evidence stand in its place.)
+
+**Fresh production form round-trip (this session).** Via app-phi-neon (apex still
+parked): Contact + Early Access both HTTP 200 `{"success":true}`; rows confirmed and
+then deleted by exact id —
+contact_messages `58825402-06f1-4aa3-a350-f6512421d30c`,
+platform_activity `16ece420-658e-465e-abd2-67f103fed171`,
+shop_database `1318e9c0-c431-45ae-ada8-b25990f5b51a` — separate readback proves
+0/0/0 remaining. No test data left behind.
+
+**NOT completed, exact blockers (browser-auth tooling, not code):**
+- **GoDaddy DNS edit** (delete apex A 3.33.130.190 + 15.197.148.33, add A 76.76.21.21;
+  keep NS, keep `www` CNAME → apex, keep `_dmarc` TXT). The `claude-in-chrome`
+  extension is not connected this session (verified via repeated
+  `list_connected_browsers` → [] and `tabs_context_mcp` → "not connected"); the in-app
+  Browser pane holds no GoDaddy login; GoDaddy uses its own nameservers so Vercel CLI
+  cannot touch the zone. DNS state re-captured today and still matches the safe-edit
+  precondition exactly.
+- **Real-domain verification** (apex serves product, www→apex 308, SSL both hosts):
+  cascades from the DNS edit.
+- **Authenticated app smoke** (Dashboard/Board/Tasks/Constraints/Projects/Team/
+  Settings): needs a signed-in app session in a Claude-drivable browser; same
+  unreachable-extension blocker. The app shell builds cleanly and inherits the global
+  tokens/fonts, but per-page authenticated visual verification was not performed.
+  To unblock either item: connect the Claude in Chrome extension (signed into the same
+  account) with GoDaddy and the app open, then this work completes unattended.
