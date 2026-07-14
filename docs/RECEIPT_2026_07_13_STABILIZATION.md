@@ -261,3 +261,24 @@ shop_database `1318e9c0-c431-45ae-ada8-b25990f5b51a` — separate readback prove
   tokens/fonts, but per-page authenticated visual verification was not performed.
   To unblock either item: connect the Claude in Chrome extension (signed into the same
   account) with GoDaddy and the app open, then this work completes unattended.
+
+---
+
+## Re-issue re-verification — 2026-07-14 (late)
+
+The step-1 task was re-issued. Re-checked the browser bridge first: `claude-in-chrome`
+still not connected (`list_connected_browsers` → [], `tabs_context_mcp` → not
+connected); no GoDaddy API key exists locally (searched env/dotfiles/repo); the in-app
+Browser pane denies external navigation. So the GoDaddy DNS edit and authenticated
+smoke remain blocked by the same root cause and were not performed.
+
+Re-verified the deployed state is intact and current: HEAD == origin/main == `9b0501d`
+clean; production = `app-8k3ew41qz` (`dpl_81Kso…`) Ready + current; `npm test` 15/15;
+all 10 public routes 200; 4 self-hosted woff2 fonts served; all 5 security headers;
+`austin=0 / houston=1 / "Free in pilot"=1`; migration tables tasks/messages/
+job_templates/template_items/contact_messages all reachable via anon REST (200). DNS
+unchanged (apex A 3.33.130.190 + 15.197.148.33; `www` CNAME → apex; `_dmarc` TXT
+present; NS ns45/ns46.domaincontrol.com) — safe-edit precondition still exact.
+
+Unblock path unchanged: connect the Claude in Chrome extension (same account, GoDaddy +
+app tabs open) and the DNS edit + authenticated smoke complete unattended.
