@@ -1,9 +1,22 @@
-# CabinetShop.io — Design Specification (PROPOSED)
+# CabinetShop.io — Design Specification (APPROVED)
 
-**Status: awaiting Frank's approval. No implementation until approved.**
-Prepared 2026-07-14 per `docs/patterns/design-workflow.md` (DBQ structure) and the
-redesign scope in `docs/CODEX_PACKET_2026_07_13.md`. Once approved, this file is law:
-no visual decision ships that is not covered here, and deviations need explicit sign off.
+**Status: APPROVED by Frank 2026-07-14. This file is law.**
+No visual decision ships that is not covered here; deviations need Frank's explicit
+sign off. Prepared per `docs/patterns/design-workflow.md` (DBQ structure) and the
+redesign scope in `docs/CODEX_PACKET_2026_07_13.md`.
+
+**Approved decisions (§10):**
+1. Typeface pair: **Archivo** (display) + **IBM Plex Sans** (body) + **IBM Plex Mono** (data).
+2. Mobile bottom navigation: **yes**, four items (Dashboard, Board, Tasks, Constraints).
+3. Job/readiness panel: **right-side drawer** on desktop, **full-screen sheet** on mobile.
+4. Sidebar: **grouped** as proposed in §4.
+5. Marketing hero glow: **remove** (in the later marketing rollout step, not step 1).
+6. Light "shop floor" theme: **parked** for later.
+
+**Spacing rule (clarification, supersedes any earlier wording):** routine spacing uses
+shared CSS variables, Tailwind token mappings, shared utility classes, or component
+variants — never repeated inline spacing styles. Inline styles are permitted ONLY for
+genuinely data-derived values (e.g. a computed bar width `style={{ width: pct% }}`).
 
 ---
 
@@ -80,10 +93,14 @@ usage of `text-blue-400`, `text-sky-400`, etc. maps to one of the five semantic 
 Type ramp (px): 11 label / 13 body / 14 emphasized / 16 section / 20 panel title /
 28 page title / marketing hero clamps as today. Line-height 1.5 body, 1.1 display.
 
-### Spacing tokens (inline styles, per house spacing law)
-Scale: 4, 8, 12, 16, 24, 32, 48, 64. Named `--space-1` … `--space-8`. Cards pad 24;
-page gutters 24 mobile / 32 desktop; section gaps 32; generous by default. No one-off
-pixel values outside the scale.
+### Spacing tokens
+Scale: 4, 8, 12, 16, 24, 32, 48, 64. Named `--space-1` … `--space-8`, exposed as CSS
+variables AND mapped into Tailwind's spacing theme so `p-6`, `gap-8`, etc. resolve to
+the scale. Cards pad 24; page gutters 24 mobile / 32 desktop; section gaps 32; generous
+by default. Apply spacing through Tailwind token classes, shared component classes, or
+component variants — **not** repeated inline `style` spacing. Inline styles are reserved
+for data-derived values only (computed widths, dynamic positions). No one-off pixel
+values outside the scale.
 
 ### Radius, borders, elevation
 `--radius-sm 8px` (chips, inputs), `--radius 12px` (buttons, cards), `--radius-lg 16px`
@@ -177,19 +194,21 @@ no clipped controls, board scrolls horizontally inside its own container by desi
 Store decomposition (Codex packet §2.1) runs as its own track after step 3, not
 mixed into visual PRs.
 
-## 10. Decisions that need Frank
+## 10. Decisions — RESOLVED by Frank 2026-07-14
 
-1. **Font pair approval:** Archivo + IBM Plex Sans/Mono (recommended, industrial) vs
-   alternative pair Space Grotesk + Source Sans 3 (rounder, friendlier). One choice.
-2. **Mobile bottom bar:** yes/no. Recommended yes; it changes shop-floor ergonomics.
-3. **Job panel as right drawer** instead of center modal: yes/no. Recommended yes.
-4. **Sidebar grouping labels** as proposed in §4, or flat list as today.
-5. **Marketing hero glow removal** (the current radial amber glow violates the
-   no-gradient rule; recommend removing, but it is a visible brand change).
-6. **Light "shop floor" theme:** park (recommended) or explore now.
+1. **Font pair:** Archivo + IBM Plex Sans/Mono. ✅ approved.
+2. **Mobile bottom bar:** yes, four items. ✅ approved.
+3. **Job panel as right drawer** (desktop) / full-screen sheet (mobile). ✅ approved.
+4. **Sidebar grouping** as proposed in §4. ✅ approved.
+5. **Marketing hero glow removal:** ✅ approved — executed in the marketing rollout step
+   (step 6), NOT in token step 1, unless the glow's implementation conflicts with the
+   new token foundation.
+6. **Light "shop floor" theme:** parked. ✅ approved.
 
 ## 11. Banned list (unchanged from house rules, restated for this project)
 
 Gradients, orbs, noise textures, glassmorphism, shadows-as-decoration, purple,
 Inter/Roboto/system fonts, skeleton shimmer, entrance animations, one-off spacing or
-z-index values, inline styles that override shared components, any fourth core color.
+z-index values, routine inline spacing styles (use tokens/classes/variants; inline only
+for data-derived values), inline styles that override shared components, any fourth
+core color.

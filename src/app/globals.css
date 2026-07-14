@@ -2,24 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-html,body{background:#0a0a0a;color:#fafaf7;-webkit-font-smoothing:antialiased}
-*{box-sizing:border-box}
-::-webkit-scrollbar{height:10px;width:10px}
-::-webkit-scrollbar-thumb{background:#262626;border-radius:99px}
-::-webkit-scrollbar-track{background:transparent}
+/* Rollout step 1 (docs/design-spec.md): design tokens. Foundational colors and the
+   shared component classes below consume these variables. Values are unchanged from
+   the pre-token app, so this slice loads fonts + centralizes tokens with no visual
+   regression; later steps retune components against the same tokens. */
+:root {
+  /* Core palette (3): ink / paper / amber */
+  --ink: #0a0a0a;
+  --paper: #fafaf7;
+  --amber: #f59e0b;
+  --amber-bright: #fbbf24;
+  --amber-deep: #d97706;
 
-.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid #262626;background:#141414;color:#fafaf7;transition:all .15s}
-.btn:hover{border-color:#3a3a3a;background:#1a1a1a}
-.btn-primary{background:#f59e0b;color:#0a0a0a;border-color:#f59e0b}
-.btn-primary:hover{background:#fbbf24;border-color:#fbbf24}
-.input{width:100%;background:#0f0f0f;border:1px solid #1e1e1e;color:#fafaf7;padding:10px 12px;border-radius:10px;font-size:13px;outline:none}
-.input:focus{border-color:#f59e0b}
-.label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#737373;margin-bottom:6px;font-weight:600}
-.card{background:#111;border:1px solid #1e1e1e;border-radius:14px}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;background:#1a1a1a;border:1px solid #262626;color:#d4d4d4}
-.chip-accent{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:#f59e0b}
-table{width:100%;border-collapse:collapse}
-thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#737373;font-weight:600;padding:14px 16px;border-bottom:1px solid #1e1e1e;background:#0d0d0d}
-tbody td{padding:14px 16px;font-size:13.5px;border-bottom:1px solid #161616;color:#d4d4d4}
-tbody tr:hover{background:#0f0f0f}
-tbody tr:hover td{color:#fff}
+  /* Derived neutrals (tints of ink, not new colors) */
+  --surface: #111111;
+  --surface-2: #161616;
+  --line: #1e1e1e;
+  --line-strong: #262626;
+  --muted: #737373;
+  --body: #d4d4d4;
+
+  /* Semantic status (excluded from the 3-color budget; state only) */
+  --ok: #34d399;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --info: #60a5fa;
+  --external: #fb923c;
+
+  /* Typography — fonts come from next/font variables set on <html> */
+  --font-display: var(--font-archivo), "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Spacing scale (4 8 12 16 24 32 48 64) — also available via Tailwind's default
+     scale (p-1..p-16). Use these vars only inside shared classes below. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radius / focus / elevation */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --focus-ring: var(--amber);
+  --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.75);
+}
+
+html, body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
+* { box-sizing: border-box; }
+::-webkit-scrollbar { height: 10px; width: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--paper); transition: all .15s; }
+.btn:hover { border-color: #3a3a3a; background: #1a1a1a; }
+.btn-primary { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+.btn-primary:hover { background: var(--amber-bright); border-color: var(--amber-bright); }
+.input { width: 100%; background: #0f0f0f; border: 1px solid var(--line); color: var(--paper); padding: 10px 12px; border-radius: 10px; font-size: 13px; outline: none; }
+.input:focus { border-color: var(--amber); }
+.label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--body); }
+.chip-accent { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); color: var(--amber); }
+
+/* Data surfaces use tabular figures so columns align (design-spec §2, §5). */
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.font-mono { font-variant-numeric: tabular-nums; }
+thead th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 14px 16px; border-bottom: 1px solid var(--line); background: #0d0d0d; }
+tbody td { padding: 14px 16px; font-size: 13.5px; border-bottom: 1px solid var(--surface-2); color: var(--body); }
+tbody tr:hover { background: #0f0f0f; }
+tbody tr:hover td { color: #fff; }
