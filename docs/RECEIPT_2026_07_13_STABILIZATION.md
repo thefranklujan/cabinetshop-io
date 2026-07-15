@@ -282,3 +282,27 @@ present; NS ns45/ns46.domaincontrol.com) — safe-edit precondition still exact.
 
 Unblock path unchanged: connect the Claude in Chrome extension (same account, GoDaddy +
 app tabs open) and the DNS edit + authenticated smoke complete unattended.
+
+---
+
+## Browser-bridge discovery — definitive (2026-07-14, re-authorized)
+
+Re-authorized to complete the DNS + authenticated smoke through Frank's browser.
+Ran the full Chrome discovery path, including the active pairing broadcast:
+- `list_connected_browsers` → `[]` (retried 5+ times)
+- `tabs_context_mcp` → "Claude in Chrome is not connected"
+- `switch_browser` (broadcasts a Connect request to every Chrome with the extension,
+  waits up to 2 min) → **"No other browsers available to switch to."**
+
+The broadcast finding zero extension-equipped Chromes is definitive: no authenticated
+Chrome is reachable from THIS Claude Code session (the extension is bound to another
+session or its side panel is not attached here). The in-app Browser pane cannot
+substitute — it holds no GoDaddy/app login and cannot perform the apex edit or the
+authenticated smoke. GoDaddy uses its own nameservers (no Vercel-CLI path) and no
+GoDaddy API key exists on disk. DNS edit + real-domain verification + authenticated
+smoke remain the only open items, blocked solely on this bridge.
+
+No drift: HEAD == origin/main == `05e842b`; production `app-8k3ew41qz` current; DNS
+still parked (apex A 3.33.130.190 + 15.197.148.33, `www` CNAME → apex, `_dmarc` TXT
+present, NS ns45/ns46.domaincontrol.com). Fix: attach the Claude in Chrome side panel
+to THIS session (close any other Claude/Codex session holding it), then re-run.
